@@ -1,0 +1,66 @@
+/* 🔹 Відступ основного контенту від фіксованого хедера */
+.main-content {
+  padding: 0 20px 40px;
+}
+
+/* 🔸 Контейнер Grid */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 колонки */
+  grid-template-rows: auto auto auto;    /* 1 / 2 / 2 */
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 🔸 Повноширинний елемент (рядок 1 — банер) */
+.grid-full {
+  grid-column: 1 / -1;
+}
+
+/* 🔸 Базовий стиль кожного елемента сітки */
+.grid-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0, 200, 255, 0.1);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.grid-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 25px rgba(0, 200, 255, 0.3);
+}
+
+/* 🖼️ Банер */
+.home-grid__banner {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 15px;
+  box-shadow: 0 0 30px rgba(0, 200, 255, 0.2);
+  display: block;
+}
+
+/* 📊 Графіки та віджети */
+#currencyChart,
+#activityChart,
+#cardsWidget,
+#storesMap {
+  min-height: 100px;
+}
+
+#currencyChart img,
+#activityChart img,
+#cardsWidget img,
+#storesMap img {
+  width: 50%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+}

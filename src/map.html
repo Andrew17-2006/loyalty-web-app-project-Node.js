@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cashback Invest - Map</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    
+    <!-- Завантаження хедера -->
+    <script src="./scripts/header.js"></script>
+    
+    <script src="https://maps.googleapis.com/maps/api/js?key=016269942da7255a3de7f177f8d00011fc5ebec1fc05a521a7f7bc2443bdeccb&callback=initMap&libraries=places" async defer></script>
+    
+    <!-- Map Script -->
+    <script src="./scripts/google-map.js" defer></script>
+    
+    <link rel="icon" type="image/x-icon" href="./images/web-site_icon.png"/>
+    <link rel="stylesheet" href="./styles/style.css"/>
+    <link rel="stylesheet" href="./styles/map.css"/>
+</head>
+<body>
+  <!-- Хедер завантажиться тут автоматично -->
+
+  <main class="main-content">
+    <div class="map-container">
+      <!-- Панель управління -->
+      <div class="map-controls">
+        <h2>Партнерські магазини</h2>
+        
+        <!-- Пошук -->
+        <div class="search-box">
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Пошук магазину або адреси..."
+          />
+          <button id="searchBtn">🔍</button>
+        </div>
+
+        <!-- Кнопка визначення локації -->
+        <button id="myLocationBtn" class="location-btn">
+          📍 Моє місцезнаходження
+        </button>
+
+        <!-- Фільтри за категоріями -->
+        <div class="filters">
+          <h3>Категорії:</h3>
+          <label><input type="checkbox" class="filter-checkbox" value="all" checked> Всі</label>
+          <label><input type="checkbox" class="filter-checkbox" value="food" checked> Продукти</label>
+          <label><input type="checkbox" class="filter-checkbox" value="fuel" checked> АЗС</label>
+          <label><input type="checkbox" class="filter-checkbox" value="electronics" checked> Техніка</label>
+          <label><input type="checkbox" class="filter-checkbox" value="pharmacy" checked> Аптеки</label>
+          <label><input type="checkbox" class="filter-checkbox" value="clothes" checked> Одяг</label>
+        </div>
+
+        <!-- Список магазинів -->
+        <div class="stores-list" id="storesList">
+          <p class="loading-text">Завантаження магазинів...</p>
+        </div>
+      </div>
+
+      <!-- Карта -->
+      <div id="map" class="map"></div>
+    </div>
+  </main>
+  
+  <footer class="footer"></footer>
+</body>
+</html>

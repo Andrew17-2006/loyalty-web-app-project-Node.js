@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cashback Invest - Loyalty Cards</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="./styles/style.css"/>
+
+  <!-- JS -->
+  <script src="./scripts/header.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="./scripts/loyalty-cards.js" defer></script>
+
+  <link rel="icon" type="image/x-icon" href="./images/web-site_icon.png"/>
+</head>
+<body>
+  <!-- Хедер завантажиться тут автоматично -->
+
+  <main class="main-content">
+
+    <!-- 🟦 Контейнер карток -->
+    <div class="loyalty-container">
+      <div class="loyalty-grid">
+        <div class="loyalty-card add-card">
+          <span class="plus">+</span>
+          <p>Додати картку</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🟩 Мої бонуси -->
+    <section class="bonus-section">
+      <h2>Мої бонуси</h2>
+      <div class="bonus-stats">
+        <div class="bonus-box">
+          <h3>₴1 250</h3>
+          <p>Загальний кешбек</p>
+        </div>
+        <div class="bonus-box">
+          <h3>₴320</h3>
+          <p>Цього місяця</p>
+        </div>
+        <div class="bonus-box">
+          <h3>0</h3>
+          <p>Активні картки</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 🟨 Останні транзакції -->
+    <section class="transactions">
+      <h2>Останні транзакції</h2>
+      <ul>
+        <li><span>АТБ-Market</span> — ₴420.50 <strong>+₴8.41 кешбек</strong></li>
+        <li><span>OKKO</span> — ₴980.00 <strong>+₴19.60 кешбек</strong></li>
+        <li><span>Rozetka</span> — ₴1250.00 <strong>+₴25.00 кешбек</strong></li>
+      </ul>
+    </section>
+    
+  </main>
+  
+  <footer class="footer"></footer>
+</body>
+</html>

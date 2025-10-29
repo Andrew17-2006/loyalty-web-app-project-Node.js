@@ -1,0 +1,115 @@
+body {
+  margin: 0;
+  font-family: Orbitron, sans-serif;
+  background: rgb(17, 0, 17);
+  color: #fff;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.register-container {
+  display: flex;
+  width: 800px;
+  height: 500px;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 0 30px #fff;
+}
+
+.form-section, .info-section {
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.form-section {
+  background: #fff;
+  color: #4b0756;
+}
+
+.form-section h2 {
+  margin-bottom: 20px;
+  font-family: Orbitron, sans-serif;
+}
+
+.form-section input[type="text"],
+.form-section input[type="email"],
+.form-section input[type="password"] {
+  width: 100%;
+  padding: 12px 0 12px 15px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.form-section button {
+  padding: 12px;
+  background-color: #220331;
+  background-image: linear-gradient(130deg, #220331, #4b0756);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.form-section button:hover {
+  background-color: #4b0756;
+  transform: scale(1.02);
+}
+
+.form-section a {
+  color: #0f172a;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.form-section a:hover{
+  color: #0f172a;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.form-section input::placeholder {
+  color: #94a3b8;
+}
+
+.form-section input:hover::placeholder {
+  color: #4a5878;
+}
+
+.form-section input:focus::placeholder {
+  color: #4a5878;
+}
+
+.form-section input:focus {
+  outline: none;
+  border-color: #4b0756;
+  box-shadow: 0 0 5px rgba(75, 7, 86, 0.5);
+}
+
+.info-section {
+  background: linear-gradient(130deg, #1d1b1e, #4b0756);
+  color: #fff;
+  text-align: center;
+  padding: 60px 30px;
+}
+
+.info-section h2 {
+  margin-bottom: 15px;
+  font-family: Orbitron, sans-serif;
+}
+
+.info-section p {
+  font-size: 14px;
+}
+
+placeholder:hover{
+  color: #0f172a;
+}
