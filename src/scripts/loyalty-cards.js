@@ -1,3 +1,10 @@
+// API URL - автоматично визначає localhost або Railway
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://127.0.0.1:3000'
+  : 'https://loyalty-web-app-project-nodejs-production.up.railway.app';
+
+console.log('🌐 Loyalty Cards API URL:', API_URL);
+
 // Loyalty Cards з інтеграцією БД
 document.addEventListener('DOMContentLoaded', async () => {
   const addCardBtn = document.querySelector('.add-card');
@@ -11,7 +18,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (cached) return cached;
 
     try {
-      const resp = await fetch('http://127.0.0.1:3000/currentUser', { credentials: 'include' });
+      // ← ЗМІНЕНО
+      const resp = await fetch(`${API_URL}/currentUser`, { credentials: 'include' });
       const data = await resp.json();
       if (data && data.success && data.username) {
         localStorage.setItem('username', data.username);
@@ -55,7 +63,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Завантажити картки з БД
   async function loadCardsFromDB() {
     try {
-      const response = await fetch('http://127.0.0.1:3000/api/loyalty-cards', {
+      // ← ЗМІНЕНО
+      const response = await fetch(`${API_URL}/api/loyalty-cards`, {
         method: 'GET',
         credentials: 'include',
         headers: makeAuthHeaders()
@@ -85,7 +94,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Створити нову картку в БД
     try {
-      const response = await fetch('http://127.0.0.1:3000/api/loyalty-cards', {
+      // ← ЗМІНЕНО
+      const response = await fetch(`${API_URL}/api/loyalty-cards`, {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json' }, makeAuthHeaders()),
         credentials: 'include',
@@ -259,7 +269,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       };
 
       try {
-        const response = await fetch(`http://127.0.0.1:3000/api/loyalty-cards/${cardData.id}`, {
+        // ← ЗМІНЕНО
+        const response = await fetch(`${API_URL}/api/loyalty-cards/${cardData.id}`, {
           method: 'PUT',
           headers: Object.assign({ 'Content-Type': 'application/json' }, makeAuthHeaders()),
           credentials: 'include',
@@ -287,7 +298,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!confirm('Видалити цю картку?')) return;
 
       try {
-        const response = await fetch(`http://127.0.0.1:3000/api/loyalty-cards/${cardData.id}`, {
+        // ← ЗМІНЕНО
+        const response = await fetch(`${API_URL}/api/loyalty-cards/${cardData.id}`, {
           method: 'DELETE',
           credentials: 'include',
           headers: makeAuthHeaders()

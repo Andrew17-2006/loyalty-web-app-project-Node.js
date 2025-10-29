@@ -1,3 +1,10 @@
+// API URL - автоматично визначає localhost або Railway
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://127.0.0.1:3000'
+  : 'https://loyalty-web-app-project-nodejs-production.up.railway.app';
+
+console.log('🌐 Header API URL:', API_URL);
+
 // Динамічне завантаження хедера та ініціалізація його функціональності
 (async function() {
   // Завантажити хедер
@@ -65,7 +72,8 @@ function initProfile() {
   // Отримати поточного користувача
   (async () => {
     try {
-      const response = await fetch('http://127.0.0.1:3000/currentUser', {
+      // ← ЗМІНЕНО: використовуємо API_URL
+      const response = await fetch(`${API_URL}/currentUser`, {
         method: 'GET',
         credentials: 'include'
       });
@@ -113,7 +121,8 @@ function initProfile() {
     e.stopPropagation();
     
     try {
-      const response = await fetch('http://127.0.0.1:3000/logout', {
+      // ← ЗМІНЕНО: використовуємо API_URL
+      const response = await fetch(`${API_URL}/logout`, {
         method: 'POST',
         credentials: 'include'
       });

@@ -1,3 +1,10 @@
+// API URL - автоматично визначає localhost або Railway
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://127.0.0.1:3000'
+  : 'https://loyalty-web-app-project-nodejs-production.up.railway.app';
+
+console.log('🌐 API URL:', API_URL);
+
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.querySelector('.form-section form');
   
@@ -57,9 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Form submitted:', { isSignUpMode, email });
 
     try {
+      // ← ЗМІНЕНО: використовуємо API_URL замість жорстко закодованого localhost
       const url = isSignUpMode 
-        ? 'http://127.0.0.1:3000/register' 
-        : 'http://127.0.0.1:3000/login';
+        ? `${API_URL}/register`
+        : `${API_URL}/login`;
       
       const bodyData = isSignUpMode
         ? { username, email, password }
@@ -90,11 +98,12 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
         console.log('Success! Redirecting to main.html');
-        window.location.href = 'main.html';
+        // ← ЗМІНЕНО: шлях до main.html (якщо він в src/)
+        window.location.href = 'src/main.html'; // або просто 'main.html' якщо він поруч
       }
     } catch (error) {
       console.error('Error:', error);
       alert('Помилка з\'єднання з сервером!');
     }
   });
-});
+}); 
