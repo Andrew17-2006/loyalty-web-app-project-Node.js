@@ -12,6 +12,7 @@ app.use(cors({
   origin: [
     'http://localhost:5500',
     'http://127.0.0.1:5500',
+    'https://andrew17-2006.github.io/loyalty-web-app-project-Node.js/'
   ],
   credentials: true,
   // Allow the custom header used as a username fallback
