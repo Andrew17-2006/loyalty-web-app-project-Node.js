@@ -26,6 +26,7 @@ app.use(cors({
 
 // ======= Middleware =======
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // ======= Logging =======
@@ -37,28 +38,17 @@ app.use((req, res, next) => {
 // ======= MySQL Connection =======
 let db;
 try {
-  if (process.env.DATABASE_URL || process.env.MYSQL_URL) {
-    console.log('✅ Using Railway MySQL connection...');
-    const dbUrl = new URL(process.env.DATABASE_URL || process.env.MYSQL_URL);
+  console.log('✅ Using Railway MySQL connection...');
+  const dbUrl = new URL(process.env.DATABASE_URL || process.env.MYSQL_URL);
 
-    db = mysql.createConnection({
-      host: dbUrl.hostname,
-      user: dbUrl.username,
-      password: dbUrl.password,
-      database: dbUrl.pathname.substring(1),
-      port: dbUrl.port || 3306,
-      ssl: { rejectUnauthorized: false }
-    });
-  } else {
-    console.log('⚙️ Using local MySQL fallback...');
-    db = mysql.createConnection({
-      host: '127.0.0.1',
-      user: 'root',
-      password: 'root',
-      database: 'loyaltycards',
-      port: 3306
-    });
-  }
+  db = mysql.createConnection({
+    host: dbUrl.hostname,
+    user: dbUrl.username,
+    password: dbUrl.password,
+    database: dbUrl.pathname.substring(1),
+    port: dbUrl.port || 3306,
+    ssl: { rejectUnauthorized: false }
+  });
 
   db.connect((err) => {
     if (err) console.error('❌ Помилка підключення до MySQL:', err);
@@ -69,10 +59,11 @@ try {
 }
 
 // ======= Serve static files =======
+// index.html — у корені, інші файли — у src/
 app.use(express.static(__dirname));
 app.use('/src', express.static(path.join(__dirname, 'src')));
 
-// ======= Helper to get username =======
+// ======= Helper =======
 function getUsernameFromReq(req) {
   if (req.cookies?.username) return req.cookies.username;
   if (req.get('x-username')) return req.get('x-username');
@@ -80,17 +71,13 @@ function getUsernameFromReq(req) {
   return null;
 }
 
-// ======= Serve HTML pages =======
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-app.get('/:page', (req, res) => {
-  const filePath = path.join(__dirname, 'src', `${req.params.page}.html`);
-  res.sendFile(filePath, (err) => {
-    if (err) res.status(404).send('❌ Page not found');
-  });
-});
+// ======= Pages =======
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/main', (req, res) => res.sendFile(path.join(__dirname, 'src', 'main.html')));
+app.get('/map', (req, res) => res.sendFile(path.join(__dirname, 'src', 'map.html')));
+app.get('/loyalty', (req, res) => res.sendFile(path.join(__dirname, 'src', 'loyalty.html')));
+app.get('/investments', (req, res) => res.sendFile(path.join(__dirname, 'src', 'investments.html')));
+app.get('/header', (req, res) => res.sendFile(path.join(__dirname, 'src', 'header.html')));
 
 // ======= Register =======
 app.post('/register', async (req, res) => {
