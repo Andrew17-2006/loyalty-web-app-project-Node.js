@@ -61,37 +61,58 @@ console.log('🔍 Checking environment variables...');
 
 let db;
 
-if (process.env.DATABASE_URL || process.env.MYSQL_URL) {
-  const connectionUrl = process.env.DATABASE_URL || process.env.MYSQL_URL;
-  console.log('✅ Using DATABASE_URL / MYSQL_URL');
-  db = mysql.createConnection(connectionUrl);
-} else if (process.env.MYSQLHOST || process.env.MYSQL_HOST) {
-  console.log('✅ Using individual MySQL environment variables');
-  db = mysql.createConnection({
-    host: process.env.MYSQLHOST || process.env.MYSQL_HOST,
-    user: process.env.MYSQLUSER || process.env.MYSQL_USER || 'root',
-    password: process.env.MYSQLPASSWORD || process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE || 'railway',
-    port: parseInt(process.env.MYSQLPORT || process.env.MYSQL_PORT || '3306')
+try {
+  if (process.env.DATABASE_URL || process.env.MYSQL_URL) {
+    // Використання Railway URL
+    const dbUrl = process.env.DATABASE_URL || process.env.MYSQL_URL;
+    console.log('✅ Using DATABASE_URL / MYSQL_URL');
+
+    const url = new URL(dbUrl);
+
+    db = mysql.createConnection({
+      host: url.hostname,
+      user: url.username,
+      password: url.password,
+      database: url.pathname.substring(1),
+      port: url.port || 3306,
+      ssl: { rejectUnauthorized: false },
+    });
+
+  } else if (process.env.MYSQLHOST || process.env.MYSQL_HOST) {
+    // Використання окремих змінних (якщо Railway не надає URL)
+    console.log('✅ Using individual MySQL environment variables');
+    db = mysql.createConnection({
+      host: process.env.MYSQLHOST || process.env.MYSQL_HOST,
+      user: process.env.MYSQLUSER || process.env.MYSQL_USER || 'root',
+      password: process.env.MYSQLPASSWORD || process.env.MYSQL_PASSWORD,
+      database: process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE || 'railway',
+      port: parseInt(process.env.MYSQLPORT || process.env.MYSQL_PORT || '3306'),
+      ssl: { rejectUnauthorized: false },
+    });
+
+  } else {
+    // Резервне підключення для локальної розробки
+    console.log('⚙️ Using localhost fallback');
+    db = mysql.createConnection({
+      host: '127.0.0.1',
+      user: 'root',
+      password: 'root',
+      database: 'loyaltycards',
+      port: 3306,
+    });
+  }
+
+  db.connect((err) => {
+    if (err) {
+      console.error('❌ Помилка підключення до БД:', err);
+    } else {
+      console.log('✅ Підключено до MySQL БД!');
+    }
   });
-} else {
-  console.log('⚙️ Using localhost fallback');
-  db = mysql.createConnection({
-    host: '127.0.0.1',
-    user: 'root',
-    password: 'root',
-    database: 'loyaltycards',
-    port: 3306
-  });
+} catch (error) {
+  console.error('❌ Помилка створення підключення:', error);
 }
 
-db.connect((err) => {
-  if (err) {
-    console.error('❌ Помилка підключення до БД:', err);
-    return;
-  }
-  console.log('✅ Підключено до MySQL БД!');
-});
 
 // ======= Реєстрація =======
 app.post('/register', async (req, res) => {
