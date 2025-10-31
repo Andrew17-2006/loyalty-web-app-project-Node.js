@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         console.log('Success! Redirecting to main.html');
         // ← ЗМІНЕНО: шлях до main.html (якщо він в src/)
-        window.location.href = 'src/main.html'; // або просто 'main.html' якщо він поруч
+        window.location.href = '/src/main.html'; // або просто 'main.html' якщо він поруч
       }
     } catch (error) {
       console.error('Error:', error);

@@ -4,10 +4,11 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 
 const app = express();
 
-// CORS
+// ======= CORS =======
 app.use(cors({ 
   origin: [
     'http://localhost:5500',
@@ -19,13 +20,21 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 
-// Логування запитів
+// ======= Віддаємо статичні файли =======
+app.use(express.static(__dirname));
+
+// Якщо користувач заходить на / → головна сторінка
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// ======= Логування запитів =======
 app.use((req, res, next) => {
   console.log('>>> REQ', req.method, req.originalUrl);
   next();
 });
 
-// OPTIONS preflight
+// ======= OPTIONS preflight =======
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
     res.header('Access-Control-Allow-Origin', req.header('Origin') || '*');
@@ -39,7 +48,7 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-// Helper: отримати username з cookie або header
+// ======= Helper: отримати username =======
 function getUsernameFromReq(req) {
   if (req.cookies && req.cookies.username) return req.cookies.username;
   if (req.get('x-username')) return req.get('x-username');
@@ -47,14 +56,34 @@ function getUsernameFromReq(req) {
   return null;
 }
 
-// ← ЗМІНЕНО: Підключення до БД через змінні середовища
-const db = mysql.createConnection({
-  host: process.env.MYSQLHOST || '127.0.0.1',
-  user: process.env.MYSQLUSER || 'root',
-  password: process.env.MYSQLPASSWORD || 'root',
-  database: process.env.MYSQLDATABASE || 'loyaltycards',
-  port: process.env.MYSQLPORT || 3306
-});
+// ======= Підключення до БД (універсальне) =======
+console.log('🔍 Checking environment variables...');
+
+let db;
+
+if (process.env.DATABASE_URL || process.env.MYSQL_URL) {
+  const connectionUrl = process.env.DATABASE_URL || process.env.MYSQL_URL;
+  console.log('✅ Using DATABASE_URL / MYSQL_URL');
+  db = mysql.createConnection(connectionUrl);
+} else if (process.env.MYSQLHOST || process.env.MYSQL_HOST) {
+  console.log('✅ Using individual MySQL environment variables');
+  db = mysql.createConnection({
+    host: process.env.MYSQLHOST || process.env.MYSQL_HOST,
+    user: process.env.MYSQLUSER || process.env.MYSQL_USER || 'root',
+    password: process.env.MYSQLPASSWORD || process.env.MYSQL_PASSWORD,
+    database: process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE || 'railway',
+    port: parseInt(process.env.MYSQLPORT || process.env.MYSQL_PORT || '3306')
+  });
+} else {
+  console.log('⚙️ Using localhost fallback');
+  db = mysql.createConnection({
+    host: '127.0.0.1',
+    user: 'root',
+    password: 'root',
+    database: 'loyaltycards',
+    port: 3306
+  });
+}
 
 db.connect((err) => {
   if (err) {
@@ -62,10 +91,9 @@ db.connect((err) => {
     return;
   }
   console.log('✅ Підключено до MySQL БД!');
-  console.log('DB Host:', process.env.MYSQLHOST || '127.0.0.1');
 });
 
-// Реєстрація
+// ======= Реєстрація =======
 app.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
   if (!username || !email || !password) return res.json({ success: false, message: 'Заповніть всі поля!' });
@@ -94,7 +122,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// Логін
+// ======= Логін =======
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   console.log('Login attempt for:', email);
@@ -131,7 +159,7 @@ app.post('/login', async (req, res) => {
   });
 });
 
-// Поточний користувач
+// ======= Поточний користувач =======
 app.get('/currentUser', (req, res) => {
   console.log('currentUser check - cookies:', req.cookies, 'x-username header:', req.get('x-username'));
   const username = getUsernameFromReq(req);
@@ -144,14 +172,14 @@ app.get('/currentUser', (req, res) => {
   }
 });
 
-// Вихід
+// ======= Вихід =======
 app.post('/logout', (req, res) => {
   res.clearCookie('username', { path: '/' });
   console.log('User logged out');
   res.json({ success: true });
 });
 
-// Отримати всі картки
+// ======= Отримати всі картки =======
 app.get('/api/loyalty-cards', (req, res) => {
   const username = getUsernameFromReq(req);
   
@@ -184,7 +212,7 @@ app.get('/api/loyalty-cards', (req, res) => {
   });
 });
 
-// Додати картку
+// ======= Додати картку =======
 app.post('/api/loyalty-cards', (req, res) => {
   console.log('Incoming POST /api/loyalty-cards headers:', req.headers);
   console.log('Incoming POST /api/loyalty-cards body:', req.body);
@@ -223,7 +251,7 @@ app.post('/api/loyalty-cards', (req, res) => {
   });
 });
 
-// Оновити картку
+// ======= Оновити картку =======
 app.put('/api/loyalty-cards/:id', (req, res) => {
   const username = getUsernameFromReq(req);
   const cardId = req.params.id;
@@ -256,7 +284,7 @@ app.put('/api/loyalty-cards/:id', (req, res) => {
   });
 });
 
-// Видалити картку
+// ======= Видалити картку =======
 app.delete('/api/loyalty-cards/:id', (req, res) => {
   const username = getUsernameFromReq(req);
   const cardId = req.params.id;
@@ -288,5 +316,6 @@ app.delete('/api/loyalty-cards/:id', (req, res) => {
   });
 });
 
+// ======= Запуск сервера =======
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

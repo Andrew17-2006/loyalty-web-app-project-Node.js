@@ -133,7 +133,7 @@ function initProfile() {
       if (data.success) {
         try { localStorage.removeItem('username'); } catch (e) {}
         console.log('Logout successful, redirecting...');
-        window.location.href = 'index.html';
+        window.location.href = '/index.html';
       } else {
         alert('Помилка при виході');
       }
