@@ -14,7 +14,7 @@ app.use(cors({
     'http://localhost:5500',
     'http://127.0.0.1:5500',
     'https://andrew17-2006.github.io/loyalty-web-app-project-Node.js/',
-    'https://loyalty-web-app-project-nodejs-production.up.railway.app/'
+    'https://loyalty-web-app-project-nodejs-production.up.railway.app'
   ],
   credentials: true,
   allowedHeaders: ['Content-Type', 'x-username'],
@@ -25,13 +25,13 @@ app.use(cors({
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-// ======= Логування запитів =======
+// ======= Logging =======
 app.use((req, res, next) => {
   console.log(`➡️ ${req.method} ${req.originalUrl}`);
   next();
 });
 
-// ======= Підключення до MySQL =======
+// ======= MySQL Connection =======
 let db;
 try {
   if (process.env.DATABASE_URL || process.env.MYSQL_URL) {
@@ -65,32 +65,30 @@ try {
   console.error('❌ Помилка створення підключення:', error);
 }
 
-// ======= Хелпер для отримання імені користувача =======
+// ======= Serve static files =======
+app.use(express.static(path.join(__dirname, 'src')));
+
+// ======= Helper to get username =======
 function getUsernameFromReq(req) {
-  if (req.cookies && req.cookies.username) return req.cookies.username;
+  if (req.cookies?.username) return req.cookies.username;
   if (req.get('x-username')) return req.get('x-username');
-  if (req.body && req.body.username) return req.body.username;
+  if (req.body?.username) return req.body.username;
   return null;
 }
 
-// ======= Видача фронтенду =======
-app.use(express.static(path.join(__dirname, 'src')));
-
-// ======= Головна сторінка =======
+// ======= Serve HTML pages =======
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'src', 'index.html'));
 });
 
-// ======= Інші сторінки (наприклад loyalty.html, map.html і т.д.) =======
 app.get('/:page', (req, res) => {
-  const page = req.params.page;
-  const filePath = path.join(__dirname, 'src', `${page}.html`);
+  const filePath = path.join(__dirname, 'src', `${req.params.page}.html`);
   res.sendFile(filePath, (err) => {
     if (err) res.status(404).send('❌ Page not found');
   });
 });
 
-// ======= Реєстрація =======
+// ======= Register =======
 app.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
   if (!username || !email || !password)
@@ -113,7 +111,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// ======= Логін =======
+// ======= Login =======
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password)
@@ -135,20 +133,20 @@ app.post('/login', async (req, res) => {
   });
 });
 
-// ======= Поточний користувач =======
+// ======= Current user =======
 app.get('/currentUser', (req, res) => {
   const username = getUsernameFromReq(req);
   if (username) res.json({ success: true, username });
   else res.json({ success: false });
 });
 
-// ======= Вихід =======
+// ======= Logout =======
 app.post('/logout', (req, res) => {
   res.clearCookie('username', { path: '/' });
   res.json({ success: true });
 });
 
-// ======= Робота з картками =======
+// ======= Loyalty cards =======
 app.get('/api/loyalty-cards', (req, res) => {
   const username = getUsernameFromReq(req);
   if (!username) return res.json({ success: false, message: 'Користувач не авторизований' });
@@ -167,7 +165,7 @@ app.get('/api/loyalty-cards', (req, res) => {
   });
 });
 
-// ======= Додати картку =======
+// ======= Add card =======
 app.post('/api/loyalty-cards', (req, res) => {
   const username = getUsernameFromReq(req);
   const { card_name, store_name, color, code_value } = req.body;
@@ -187,7 +185,7 @@ app.post('/api/loyalty-cards', (req, res) => {
   });
 });
 
-// ======= Видалити картку =======
+// ======= Delete card =======
 app.delete('/api/loyalty-cards/:id', (req, res) => {
   const username = getUsernameFromReq(req);
   const cardId = req.params.id;
@@ -209,6 +207,6 @@ app.delete('/api/loyalty-cards/:id', (req, res) => {
   });
 });
 
-// ======= Запуск сервера =======
-const PORT = process.env.PORT || 3000;
+// ======= Start server =======
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
