@@ -5,8 +5,8 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-require('dotenv').config();
 const path = require('path');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -26,29 +26,39 @@ app.use(cors({
 
 // ======= Middleware =======
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ======= Logging =======
+// ======= Логування запитів =======
 app.use((req, res, next) => {
   console.log(`➡️ ${req.method} ${req.originalUrl}`);
   next();
 });
 
-// ======= MySQL Connection =======
+// ======= Підключення до MySQL =======
 let db;
 try {
-  console.log('✅ Using Railway MySQL connection...');
-  const dbUrl = new URL(process.env.DATABASE_URL || process.env.MYSQL_URL);
+  if (process.env.DATABASE_URL || process.env.MYSQL_URL) {
+    console.log('✅ Using Railway MySQL connection...');
+    const dbUrl = new URL(process.env.DATABASE_URL || process.env.MYSQL_URL);
 
-  db = mysql.createConnection({
-    host: dbUrl.hostname,
-    user: dbUrl.username,
-    password: dbUrl.password,
-    database: dbUrl.pathname.substring(1),
-    port: dbUrl.port || 3306,
-    ssl: { rejectUnauthorized: false }
-  });
+    db = mysql.createConnection({
+      host: dbUrl.hostname,
+      user: dbUrl.username,
+      password: dbUrl.password,
+      database: dbUrl.pathname.substring(1),
+      port: dbUrl.port || 3306,
+      ssl: { rejectUnauthorized: false }
+    });
+  } else {
+    console.log('⚙️ Using local MySQL fallback...');
+    db = mysql.createConnection({
+      host: '127.0.0.1',
+      user: 'root',
+      password: 'root',
+      database: 'loyaltycards',
+      port: 3306
+    });
+  }
 
   db.connect((err) => {
     if (err) console.error('❌ Помилка підключення до MySQL:', err);
@@ -58,12 +68,11 @@ try {
   console.error('❌ Помилка створення підключення:', error);
 }
 
-// ======= Serve static files =======
-// index.html — у корені, інші файли — у src/
+// ======= Видача статичних файлів =======
 app.use(express.static(__dirname));
 app.use('/src', express.static(path.join(__dirname, 'src')));
 
-// ======= Helper =======
+// ======= Хелпер для отримання імені користувача =======
 function getUsernameFromReq(req) {
   if (req.cookies?.username) return req.cookies.username;
   if (req.get('x-username')) return req.get('x-username');
@@ -71,15 +80,20 @@ function getUsernameFromReq(req) {
   return null;
 }
 
-// ======= Pages =======
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get('/main', (req, res) => res.sendFile(path.join(__dirname, 'src', 'main.html')));
-app.get('/map', (req, res) => res.sendFile(path.join(__dirname, 'src', 'map.html')));
-app.get('/loyalty', (req, res) => res.sendFile(path.join(__dirname, 'src', 'loyalty.html')));
-app.get('/investments', (req, res) => res.sendFile(path.join(__dirname, 'src', 'investments.html')));
-app.get('/header', (req, res) => res.sendFile(path.join(__dirname, 'src', 'header.html')));
+// ======= Головна сторінка =======
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
-// ======= Register =======
+// ======= Підтримка інших сторінок (src/*.html) =======
+app.get('/:page', (req, res) => {
+  const filePath = path.join(__dirname, 'src', `${req.params.page}.html`);
+  res.sendFile(filePath, (err) => {
+    if (err) res.status(404).send('❌ Page not found');
+  });
+});
+
+// ======= Реєстрація =======
 app.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
   if (!username || !email || !password)
@@ -102,7 +116,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// ======= Login =======
+// ======= Логін =======
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password)
@@ -124,20 +138,20 @@ app.post('/login', async (req, res) => {
   });
 });
 
-// ======= Current user =======
+// ======= Поточний користувач =======
 app.get('/currentUser', (req, res) => {
   const username = getUsernameFromReq(req);
   if (username) res.json({ success: true, username });
   else res.json({ success: false });
 });
 
-// ======= Logout =======
+// ======= Вихід =======
 app.post('/logout', (req, res) => {
   res.clearCookie('username', { path: '/' });
   res.json({ success: true });
 });
 
-// ======= Loyalty cards =======
+// ======= Картки лояльності =======
 app.get('/api/loyalty-cards', (req, res) => {
   const username = getUsernameFromReq(req);
   if (!username) return res.json({ success: false, message: 'Користувач не авторизований' });
@@ -156,7 +170,7 @@ app.get('/api/loyalty-cards', (req, res) => {
   });
 });
 
-// ======= Add card =======
+// ======= Додати картку =======
 app.post('/api/loyalty-cards', (req, res) => {
   const username = getUsernameFromReq(req);
   const { card_name, store_name, color, code_value } = req.body;
@@ -176,7 +190,7 @@ app.post('/api/loyalty-cards', (req, res) => {
   });
 });
 
-// ======= Delete card =======
+// ======= Видалити картку =======
 app.delete('/api/loyalty-cards/:id', (req, res) => {
   const username = getUsernameFromReq(req);
   const cardId = req.params.id;
@@ -198,7 +212,5 @@ app.delete('/api/loyalty-cards/:id', (req, res) => {
   });
 });
 
-// ======= Start server =======
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
-// ======= end server.js =======
+// ======= Запуск сервера =======
+app.listen(PORT, '0.0.0.0', () => console.log(`🚀 Server running on port ${PORT}`));
