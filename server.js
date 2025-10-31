@@ -1,19 +1,22 @@
+// ======= Імпорти =======
 const express = require('express');
 const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+require('dotenv').config();
 const path = require('path');
 
 const app = express();
+const PORT = process.env.PORT || 8080;
 
 // ======= CORS =======
 app.use(cors({
   origin: [
     'http://localhost:5500',
     'http://127.0.0.1:5500',
-    'https://andrew17-2006.github.io/loyalty-web-app-project-Node.js/',
+    'https://andrew17-2006.github.io',
     'https://loyalty-web-app-project-nodejs-production.up.railway.app'
   ],
   credentials: true,
@@ -66,7 +69,8 @@ try {
 }
 
 // ======= Serve static files =======
-app.use(express.static(path.join(__dirname, 'src')));
+app.use(express.static(__dirname));
+app.use('/src', express.static(path.join(__dirname, 'src')));
 
 // ======= Helper to get username =======
 function getUsernameFromReq(req) {
@@ -78,7 +82,7 @@ function getUsernameFromReq(req) {
 
 // ======= Serve HTML pages =======
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'src', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.get('/:page', (req, res) => {
@@ -208,5 +212,4 @@ app.delete('/api/loyalty-cards/:id', (req, res) => {
 });
 
 // ======= Start server =======
-const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
