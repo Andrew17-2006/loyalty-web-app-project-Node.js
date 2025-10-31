@@ -9,46 +9,63 @@ const path = require('path');
 const app = express();
 
 // ======= CORS =======
-app.use(cors({ 
+app.use(cors({
   origin: [
     'http://localhost:5500',
     'http://127.0.0.1:5500',
     'https://andrew17-2006.github.io/loyalty-web-app-project-Node.js/',
+    'https://loyalty-web-app-project-nodejs-production.up.railway.app/'
   ],
   credentials: true,
   allowedHeaders: ['Content-Type', 'x-username'],
   optionsSuccessStatus: 200
 }));
 
-// ======= Віддаємо статичні файли =======
-app.use(express.static(__dirname));
-
-// Якщо користувач заходить на / → головна сторінка
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// ======= Логування запитів =======
-app.use((req, res, next) => {
-  console.log('>>> REQ', req.method, req.originalUrl);
-  next();
-});
-
-// ======= OPTIONS preflight =======
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Origin', req.header('Origin') || '*');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, x-username');
-    return res.sendStatus(200);
-  }
-  next();
-});
-
+// ======= Middleware =======
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-// ======= Helper: отримати username =======
+// ======= Логування запитів =======
+app.use((req, res, next) => {
+  console.log(`➡️ ${req.method} ${req.originalUrl}`);
+  next();
+});
+
+// ======= Підключення до MySQL =======
+let db;
+try {
+  if (process.env.DATABASE_URL || process.env.MYSQL_URL) {
+    console.log('✅ Using Railway MySQL connection...');
+    const dbUrl = new URL(process.env.DATABASE_URL || process.env.MYSQL_URL);
+
+    db = mysql.createConnection({
+      host: dbUrl.hostname,
+      user: dbUrl.username,
+      password: dbUrl.password,
+      database: dbUrl.pathname.substring(1),
+      port: dbUrl.port || 3306,
+      ssl: { rejectUnauthorized: false }
+    });
+  } else {
+    console.log('⚙️ Using local MySQL fallback...');
+    db = mysql.createConnection({
+      host: '127.0.0.1',
+      user: 'root',
+      password: 'root',
+      database: 'loyaltycards',
+      port: 3306
+    });
+  }
+
+  db.connect((err) => {
+    if (err) console.error('❌ Помилка підключення до MySQL:', err);
+    else console.log('✅ Підключено до MySQL БД!');
+  });
+} catch (error) {
+  console.error('❌ Помилка створення підключення:', error);
+}
+
+// ======= Хелпер для отримання імені користувача =======
 function getUsernameFromReq(req) {
   if (req.cookies && req.cookies.username) return req.cookies.username;
   if (req.get('x-username')) return req.get('x-username');
@@ -56,86 +73,39 @@ function getUsernameFromReq(req) {
   return null;
 }
 
-// ======= Підключення до БД (універсальне) =======
-console.log('🔍 Checking environment variables...');
+// ======= Видача фронтенду =======
+app.use(express.static(path.join(__dirname, 'src')));
 
-let db;
+// ======= Головна сторінка =======
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'src', 'index.html'));
+});
 
-try {
-  if (process.env.DATABASE_URL || process.env.MYSQL_URL) {
-    // Використання Railway URL
-    const dbUrl = process.env.DATABASE_URL || process.env.MYSQL_URL;
-    console.log('✅ Using DATABASE_URL / MYSQL_URL');
-
-    const url = new URL(dbUrl);
-
-    db = mysql.createConnection({
-      host: url.hostname,
-      user: url.username,
-      password: url.password,
-      database: url.pathname.substring(1),
-      port: url.port || 3306,
-      ssl: { rejectUnauthorized: false },
-    });
-
-  } else if (process.env.MYSQLHOST || process.env.MYSQL_HOST) {
-    // Використання окремих змінних (якщо Railway не надає URL)
-    console.log('✅ Using individual MySQL environment variables');
-    db = mysql.createConnection({
-      host: process.env.MYSQLHOST || process.env.MYSQL_HOST,
-      user: process.env.MYSQLUSER || process.env.MYSQL_USER || 'root',
-      password: process.env.MYSQLPASSWORD || process.env.MYSQL_PASSWORD,
-      database: process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE || 'railway',
-      port: parseInt(process.env.MYSQLPORT || process.env.MYSQL_PORT || '3306'),
-      ssl: { rejectUnauthorized: false },
-    });
-
-  } else {
-    // Резервне підключення для локальної розробки
-    console.log('⚙️ Using localhost fallback');
-    db = mysql.createConnection({
-      host: '127.0.0.1',
-      user: 'root',
-      password: 'root',
-      database: 'loyaltycards',
-      port: 3306,
-    });
-  }
-
-  db.connect((err) => {
-    if (err) {
-      console.error('❌ Помилка підключення до БД:', err);
-    } else {
-      console.log('✅ Підключено до MySQL БД!');
-    }
+// ======= Інші сторінки (наприклад loyalty.html, map.html і т.д.) =======
+app.get('/:page', (req, res) => {
+  const page = req.params.page;
+  const filePath = path.join(__dirname, 'src', `${page}.html`);
+  res.sendFile(filePath, (err) => {
+    if (err) res.status(404).send('❌ Page not found');
   });
-} catch (error) {
-  console.error('❌ Помилка створення підключення:', error);
-}
-
+});
 
 // ======= Реєстрація =======
 app.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
-  if (!username || !email || !password) return res.json({ success: false, message: 'Заповніть всі поля!' });
+  if (!username || !email || !password)
+    return res.json({ success: false, message: 'Заповніть всі поля!' });
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const sql = 'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)';
     db.query(sql, [username, email, hashedPassword], (err) => {
       if (err) {
-        if (err.code === 'ER_DUP_ENTRY') return res.json({ success: false, message: 'Користувач з таким email або ім\'ям вже існує!' });
+        if (err.code === 'ER_DUP_ENTRY')
+          return res.json({ success: false, message: 'Користувач вже існує!' });
         return res.json({ success: false, message: 'Помилка при реєстрації' });
       }
-      
-      res.cookie('username', username, { 
-        httpOnly: false,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 24 * 60 * 60 * 1000
-      });
-      
-      console.log('✅ User registered:', username);
+      res.cookie('username', username, { httpOnly: false, sameSite: 'lax', path: '/' });
       res.json({ success: true, message: 'Реєстрація успішна!', username });
     });
   } catch (error) {
@@ -146,88 +116,52 @@ app.post('/register', async (req, res) => {
 // ======= Логін =======
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
-  console.log('Login attempt for:', email);
-  
-  if (!email || !password) return res.json({ success: false, message: 'Заповніть всі поля!' });
+  if (!email || !password)
+    return res.json({ success: false, message: 'Заповніть всі поля!' });
 
   const sql = 'SELECT * FROM users WHERE email = ?';
   db.query(sql, [email], async (err, results) => {
-    if (err) {
-      console.log('DB error:', err);
-      return res.json({ success: false, message: 'Помилка сервера' });
-    }
-    if (results.length === 0) {
-      console.log('User not found');
+    if (err) return res.json({ success: false, message: 'Помилка сервера' });
+    if (results.length === 0)
       return res.json({ success: false, message: 'Неправильний email або пароль' });
-    }
 
     const user = results[0];
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-    if (!isPasswordValid) {
-      console.log('Invalid password');
+    const isValid = await bcrypt.compare(password, user.password_hash);
+    if (!isValid)
       return res.json({ success: false, message: 'Неправильний email або пароль' });
-    }
 
-    res.cookie('username', user.username, { 
-      httpOnly: false,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 24 * 60 * 60 * 1000
-    });
-    
-    console.log('✅ User logged in:', user.username);
+    res.cookie('username', user.username, { httpOnly: false, sameSite: 'lax', path: '/' });
     res.json({ success: true, message: 'Вхід успішний!', username: user.username });
   });
 });
 
 // ======= Поточний користувач =======
 app.get('/currentUser', (req, res) => {
-  console.log('currentUser check - cookies:', req.cookies, 'x-username header:', req.get('x-username'));
   const username = getUsernameFromReq(req);
-  if (username) {
-    console.log('✅ User found:', username);
-    res.json({ success: true, username });
-  } else {
-    console.log('❌ No user identity found');
-    res.json({ success: false });
-  }
+  if (username) res.json({ success: true, username });
+  else res.json({ success: false });
 });
 
 // ======= Вихід =======
 app.post('/logout', (req, res) => {
   res.clearCookie('username', { path: '/' });
-  console.log('User logged out');
   res.json({ success: true });
 });
 
-// ======= Отримати всі картки =======
+// ======= Робота з картками =======
 app.get('/api/loyalty-cards', (req, res) => {
   const username = getUsernameFromReq(req);
-  
-  if (!username) {
-    return res.json({ success: false, message: 'Користувач не авторизований' });
-  }
+  if (!username) return res.json({ success: false, message: 'Користувач не авторизований' });
 
   const getUserSql = 'SELECT id FROM users WHERE username = ?';
-  db.query(getUserSql, [username], (err, userResults) => {
-    if (err) {
-      console.error('DB error:', err);
-      return res.json({ success: false, message: 'Помилка БД' });
-    }
-    
-    if (userResults.length === 0) {
+  db.query(getUserSql, [username], (err, userRes) => {
+    if (err || userRes.length === 0)
       return res.json({ success: false, message: 'Користувач не знайдений' });
-    }
 
-    const userId = userResults[0].id;
-
-    const getCardsSql = 'SELECT * FROM loyalty_cards WHERE user_id = ? ORDER BY id ASC';
-    db.query(getCardsSql, [userId], (err, cards) => {
-      if (err) {
-        console.error('DB error:', err);
-        return res.json({ success: false, message: 'Помилка отримання карток' });
-      }
-
+    const userId = userRes[0].id;
+    const sql = 'SELECT * FROM loyalty_cards WHERE user_id = ? ORDER BY id ASC';
+    db.query(sql, [userId], (err, cards) => {
+      if (err) return res.json({ success: false, message: 'Помилка отримання карток' });
       res.json({ success: true, cards });
     });
   });
@@ -235,72 +169,20 @@ app.get('/api/loyalty-cards', (req, res) => {
 
 // ======= Додати картку =======
 app.post('/api/loyalty-cards', (req, res) => {
-  console.log('Incoming POST /api/loyalty-cards headers:', req.headers);
-  console.log('Incoming POST /api/loyalty-cards body:', req.body);
-
   const username = getUsernameFromReq(req);
   const { card_name, store_name, color, code_value } = req.body;
-
-  if (!username) {
-    return res.json({ success: false, message: 'Користувач не авторизований' });
-  }
+  if (!username) return res.json({ success: false, message: 'Користувач не авторизований' });
 
   const getUserSql = 'SELECT id FROM users WHERE username = ?';
-  db.query(getUserSql, [username], (err, userResults) => {
-    if (err || userResults.length === 0) {
-      console.error('User lookup failed for username:', username, 'err:', err);
-      return res.json({ success: false, message: 'Користувач не знайдений', usernameUsed: username, dbError: err ? err.message : undefined });
-    }
+  db.query(getUserSql, [username], (err, userRes) => {
+    if (err || userRes.length === 0)
+      return res.json({ success: false, message: 'Користувач не знайдений' });
 
-    const userId = userResults[0].id;
-
-    const insertSql = 'INSERT INTO loyalty_cards (user_id, card_name, store_name, color, code_value) VALUES (?, ?, ?, ?, ?)';
-    db.query(insertSql, [userId, card_name, store_name, color, code_value], (err, result) => {
-      if (err) {
-        console.error('Insert error:', err);
-        return res.json({ success: false, message: 'Помилка додавання картки', error: err.message });
-      }
-
-      console.log('Insert success, id:', result.insertId);
-      res.json({ 
-        success: true, 
-        message: 'Картку додано', 
-        cardId: result.insertId,
-        card: { id: result.insertId, user_id: userId, card_name, store_name, color, code_value }
-      });
-    });
-  });
-});
-
-// ======= Оновити картку =======
-app.put('/api/loyalty-cards/:id', (req, res) => {
-  const username = getUsernameFromReq(req);
-  const cardId = req.params.id;
-  const { card_name, store_name, color, code_value } = req.body;
-
-  if (!username) {
-    return res.json({ success: false, message: 'Користувач не авторизований' });
-  }
-
-  const checkSql = `
-    SELECT lc.* FROM loyalty_cards lc 
-    JOIN users u ON lc.user_id = u.id 
-    WHERE lc.id = ? AND u.username = ?
-  `;
-  
-  db.query(checkSql, [cardId, username], (err, results) => {
-    if (err || results.length === 0) {
-      return res.json({ success: false, message: 'Картка не знайдена або немає доступу' });
-    }
-
-    const updateSql = 'UPDATE loyalty_cards SET card_name = ?, store_name = ?, color = ?, code_value = ? WHERE id = ?';
-    db.query(updateSql, [card_name, store_name, color, code_value, cardId], (err) => {
-      if (err) {
-        console.error('Update error:', err);
-        return res.json({ success: false, message: 'Помилка оновлення' });
-      }
-
-      res.json({ success: true, message: 'Картку оновлено' });
+    const userId = userRes[0].id;
+    const sql = 'INSERT INTO loyalty_cards (user_id, card_name, store_name, color, code_value) VALUES (?, ?, ?, ?, ?)';
+    db.query(sql, [userId, card_name, store_name, color, code_value], (err, result) => {
+      if (err) return res.json({ success: false, message: 'Помилка додавання картки' });
+      res.json({ success: true, message: 'Картку додано', cardId: result.insertId });
     });
   });
 });
@@ -309,29 +191,19 @@ app.put('/api/loyalty-cards/:id', (req, res) => {
 app.delete('/api/loyalty-cards/:id', (req, res) => {
   const username = getUsernameFromReq(req);
   const cardId = req.params.id;
-
-  if (!username) {
-    return res.json({ success: false, message: 'Користувач не авторизований' });
-  }
+  if (!username) return res.json({ success: false, message: 'Користувач не авторизований' });
 
   const checkSql = `
-    SELECT lc.* FROM loyalty_cards lc 
-    JOIN users u ON lc.user_id = u.id 
+    SELECT lc.* FROM loyalty_cards lc
+    JOIN users u ON lc.user_id = u.id
     WHERE lc.id = ? AND u.username = ?
   `;
-  
   db.query(checkSql, [cardId, username], (err, results) => {
-    if (err || results.length === 0) {
+    if (err || results.length === 0)
       return res.json({ success: false, message: 'Картка не знайдена або немає доступу' });
-    }
 
-    const deleteSql = 'DELETE FROM loyalty_cards WHERE id = ?';
-    db.query(deleteSql, [cardId], (err) => {
-      if (err) {
-        console.error('Delete error:', err);
-        return res.json({ success: false, message: 'Помилка видалення' });
-      }
-
+    db.query('DELETE FROM loyalty_cards WHERE id = ?', [cardId], (err) => {
+      if (err) return res.json({ success: false, message: 'Помилка видалення' });
       res.json({ success: true, message: 'Картку видалено' });
     });
   });
