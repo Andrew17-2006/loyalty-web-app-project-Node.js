@@ -59,17 +59,26 @@ try {
 }
 
 // ======= Serve static files =======
-// index.html — у корені, інші файли — у src/
-app.use(express.static(__dirname));
+// Головна (index.html) у корені, решта — у /src
+app.use(express.static(path.join(__dirname))); // для index.html
 app.use('/src', express.static(path.join(__dirname, 'src')));
 
-// ======= Helper =======
-function getUsernameFromReq(req) {
-  if (req.cookies?.username) return req.cookies.username;
-  if (req.get('x-username')) return req.get('x-username');
-  if (req.body?.username) return req.body.username;
-  return null;
-}
+// ======= Routes =======
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Якщо хтось переходить на /src/loyalty.html — теж дозволяємо
+app.get('/src/:page', (req, res) => {
+  const page = req.params.page;
+  const filePath = path.join(__dirname, 'src', page);
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('❌ Page not found:', filePath);
+      res.status(404).send('❌ Page not found');
+    }
+  });
+});
 
 // ======= Pages =======
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
