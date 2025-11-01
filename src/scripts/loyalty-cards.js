@@ -1,16 +1,26 @@
-// API URL - автоматично визначає localhost або Railway
-const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://127.0.0.1:3000'
-  : 'https://loyalty-web-app-project-nodejs-production.up.railway.app';
+// === Loyalty Cards Script ===
+// Отримуємо API_URL з header.js або створюємо резервний
+const API_URL = window.API_URL || (
+  window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://127.0.0.1:3000'
+    : 'https://loyalty-web-app-project-nodejs-production.up.railway.app'
+);
 
 console.log('🌐 Loyalty Cards API URL:', API_URL);
 
 // Loyalty Cards з інтеграцією БД
 document.addEventListener('DOMContentLoaded', async () => {
+  console.log('📦 Loyalty-cards script loaded');
+
   const addCardBtn = document.querySelector('.add-card');
   const loyaltyGrid = document.querySelector('.loyalty-grid');
   const activeCardsCounter = document.querySelector('.bonus-box:nth-child(3) h3');
   const MAX_CARDS = 6;
+
+  if (!addCardBtn) {
+    console.error('❌ Елемент .add-card не знайдено!');
+    return;
+  }
 
   // Helper: read cached username or fetch from server and cache it
   async function ensureUsernameCached() {
@@ -18,7 +28,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (cached) return cached;
 
     try {
-      // ← ЗМІНЕНО
       const resp = await fetch(`${API_URL}/currentUser`, { credentials: 'include' });
       const data = await resp.json();
       if (data && data.success && data.username) {
@@ -26,7 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return data.username;
       }
     } catch (err) {
-      console.warn('Could not fetch currentUser:', err);
+      console.warn('⚠️ Could not fetch currentUser:', err);
     }
 
     return null;
@@ -44,14 +53,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const stores = [
     'АТБ', 'Сільпо', 'OKKO', 'Rozetka',
     'Comfy', 'Eldorado', 'Фора', 'Novus',
-    'Аптека 911', 'McDonald\'s', 'KFC', 'Інший'
+    'Аптека 911', "McDonald's", 'KFC', 'Інший'
   ];
 
-  // Завантажити існуючі картки з БД
-  await loadCardsFromDB();
-
-  // Try to ensure we have a cached username (used when cookies aren't sent)
+  // Спершу кешуємо користувача, потім завантажуємо картки
   await ensureUsernameCached();
+  await loadCardsFromDB();
 
   // Оновити лічильник
   function updateCardCounter() {
@@ -63,7 +70,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Завантажити картки з БД
   async function loadCardsFromDB() {
     try {
-      // ← ЗМІНЕНО
       const response = await fetch(`${API_URL}/api/loyalty-cards`, {
         method: 'GET',
         credentials: 'include',
@@ -85,6 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Додавання нової картки
   addCardBtn.addEventListener('click', async () => {
+    console.log('🟢 Add card clicked');
     const currentCards = document.querySelectorAll('.editable-card').length;
     
     if (currentCards >= MAX_CARDS) {
@@ -92,9 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    // Створити нову картку в БД
     try {
-      // ← ЗМІНЕНО
       const response = await fetch(`${API_URL}/api/loyalty-cards`, {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json' }, makeAuthHeaders()),
@@ -144,7 +149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       </button>
       <button class="delete-btn" title="Видалити">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
-          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14В4z"/>
         </svg>
       </button>
       <div class="card-content">
@@ -189,7 +194,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const doneBtn = card.querySelector('.done-btn');
     let selectedColor = cardData.color;
 
-    // Показати кнопки при hover
     card.addEventListener('mouseenter', () => {
       if (editPanel.style.display !== 'flex') {
         editBtn.style.opacity = '1';
@@ -208,14 +212,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
-    // Редагування
     editBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (editPanel.style.display === 'flex') {
-        closeEditPanel();
-      } else {
-        openEditPanel();
-      }
+      if (editPanel.style.display === 'flex') closeEditPanel();
+      else openEditPanel();
     });
 
     function openEditPanel() {
@@ -240,7 +240,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       card.style.height = '320px';
     }
 
-    // Вибір кольору
     colorBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         selectedColor = btn.dataset.color;
@@ -250,7 +249,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     });
 
-    // Оновлення в реальному часі
     cardInput.addEventListener('input', () => {
       storeName.textContent = cardInput.value || 'Нова картка';
     });
@@ -259,7 +257,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       storeLabel.textContent = storeSelect.value;
     });
 
-    // Зберегти зміни
     doneBtn.addEventListener('click', async () => {
       const updatedData = {
         card_name: cardInput.value || 'Нова картка',
@@ -269,7 +266,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       };
 
       try {
-        // ← ЗМІНЕНО
         const response = await fetch(`${API_URL}/api/loyalty-cards/${cardData.id}`, {
           method: 'PUT',
           headers: Object.assign({ 'Content-Type': 'application/json' }, makeAuthHeaders()),
@@ -292,13 +288,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
-    // Видалення
     deleteBtn.addEventListener('click', async (e) => {
       e.stopPropagation();
       if (!confirm('Видалити цю картку?')) return;
 
       try {
-        // ← ЗМІНЕНО
         const response = await fetch(`${API_URL}/api/loyalty-cards/${cardData.id}`, {
           method: 'DELETE',
           credentials: 'include',
