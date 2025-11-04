@@ -41,7 +41,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     return null;
   }
 
-  // Helper: build headers to send username fallback when cookies are not sent
   function makeAuthHeaders() {
     const headers = {};
     const username = localStorage.getItem('username');

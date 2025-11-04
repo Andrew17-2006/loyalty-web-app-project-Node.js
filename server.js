@@ -63,6 +63,14 @@ try {
 app.use(express.static(path.join(__dirname))); // для index.html
 app.use('/src', express.static(path.join(__dirname, 'src')));
 
+// ======= Helper (має бути до маршрутів!) =======
+function getUsernameFromReq(req) {
+  if (req.cookies?.username) return req.cookies.username;
+  if (req.get('x-username')) return req.get('x-username');
+  if (req.body?.username) return req.body.username;
+  return null;
+}
+
 // ======= Routes =======
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
