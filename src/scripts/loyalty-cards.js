@@ -1,6 +1,6 @@
 // === Loyalty Cards Script ===
 // Отримуємо API_URL з header.js або створюємо резервний
-const API_URL = window.API_URL;
+const API_URL = window.API_URL || '';
 
 console.log('🌐 Loyalty Cards API URL:', API_URL);
 
