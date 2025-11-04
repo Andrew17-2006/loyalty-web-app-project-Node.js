@@ -13,13 +13,55 @@
     
     <link rel="icon" type="image/x-icon" href="./images/web-site_icon.png"/>
     <link rel="stylesheet" href="./styles/style.css"/>
+    <script src="./scripts/investments.js" defer></script>
 </head>
 <body>
   <!-- Хедер завантажиться тут автоматично -->
 
-  <main class="main-content">
-    <h1 style="color: white;">Loyalty Cards Page</h1>
-    <!-- Ваш контент для Loyalty Cards -->
+  <main class="main-content investments-page">
+    <h1 class="page-title">💎 Мої Інвестиції</h1>
+
+    <!-- 📊 Загальна статистика -->
+    <section class="invest-summary">
+      <div class="invest-box">
+        <h3>₴12,450</h3>
+        <p>Загальна сума інвестицій</p>
+      </div>
+      <div class="invest-box">
+        <h3>₴1,240</h3>
+        <p>Місячний прибуток</p>
+      </div>
+      <div class="invest-box">
+        <h3>+9.8%</h3>
+        <p>Рентабельність</p>
+      </div>
+    </section>
+
+    <!-- 📈 Таблиця інвестицій -->
+    <section class="invest-table-section">
+      <h2>Портфель</h2>
+      <table class="invest-table">
+        <thead>
+          <tr>
+            <th>Проєкт</th>
+            <th>Сума</th>
+            <th>Прибуток</th>
+            <th>Дата</th>
+          </tr>
+        </thead>
+        <tbody id="invest-table-body"></tbody>
+      </table>
+    </section>
+
+    <!-- ➕ Додавання інвестиції -->
+    <section class="invest-add">
+      <h2>Додати нову інвестицію</h2>
+      <form id="invest-form">
+        <input type="text" id="projectName" placeholder="Назва проєкту" required>
+        <input type="number" id="amount" placeholder="Сума (₴)" required>
+        <button type="submit">Додати</button>
+      </form>
+    </section>
   </main>
   
   <footer class="footer"></footer>
