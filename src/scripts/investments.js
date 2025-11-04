@@ -1,42 +1,99 @@
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('💰 Investments page loaded');
+document.addEventListener('DOMContentLoaded', async () => {
+  const cashbackEl = document.getElementById('cashback-balance');
+  const investedEl = document.getElementById('invested-total');
+  const profitEl = document.getElementById('invested-profit');
+  const marketList = document.getElementById('market-list');
+  const portfolioBody = document.getElementById('portfolio-body');
 
-  const form = document.getElementById('invest-form');
-  const tableBody = document.getElementById('invest-table-body');
+  let cashback = parseFloat(localStorage.getItem('cashback') || '1200'); // приклад
+  let portfolio = JSON.parse(localStorage.getItem('portfolio') || '[]');
 
-  // Зберігаємо інвестиції в LocalStorage
-  const investments = JSON.parse(localStorage.getItem('investments')) || [];
+  // Показати кешбек
+  cashbackEl.textContent = `₴${cashback.toFixed(2)}`;
 
-  function renderTable() {
-    tableBody.innerHTML = '';
-    investments.forEach(inv => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${inv.project}</td>
-        <td>₴${inv.amount.toFixed(2)}</td>
-        <td>₴${(inv.amount * inv.profitRate).toFixed(2)}</td>
-        <td>${inv.date}</td>
-      `;
-      tableBody.appendChild(tr);
-    });
+  // Отримати курси валют
+  async function fetchRates() {
+    const res = await fetch('https://api.exchangerate.host/latest?base=UAH&symbols=USD,EUR,GBP,BTC');
+    const data = await res.json();
+    return data.rates;
   }
 
-  renderTable();
+  const rates = await fetchRates();
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
+  // Побудова ринку валют
+  Object.entries(rates).forEach(([currency, rate]) => {
+    const card = document.createElement('div');
+    card.className = 'market-card';
+    card.innerHTML = `
+      <h3>${currency}</h3>
+      <p>1 ${currency} = ${(1 / rate).toFixed(2)} ₴</p>
+      <button class="invest-btn">Invest</button>
+    `;
 
-    const project = document.getElementById('projectName').value.trim();
-    const amount = parseFloat(document.getElementById('amount').value);
-    const profitRate = +(Math.random() * 0.15 + 0.02).toFixed(2); // 2–17% прибутку
-    const date = new Date().toLocaleDateString('uk-UA');
+    const investBtn = card.querySelector('.invest-btn');
+    investBtn.addEventListener('click', () => invest(currency, 1 / rate));
 
-    const newInvestment = { project, amount, profitRate, date };
-    investments.push(newInvestment);
-
-    localStorage.setItem('investments', JSON.stringify(investments));
-    renderTable();
-
-    form.reset();
+    marketList.appendChild(card);
   });
+
+  // Інвестування
+  function invest(currency, priceUAH) {
+    const amount = prompt(`Скільки ₴ кешбеку інвестувати у ${currency}?`, '100');
+    const investUAH = parseFloat(amount);
+
+    if (isNaN(investUAH) || investUAH <= 0 || investUAH > cashback) {
+      alert('❌ Некоректна сума або недостатньо коштів!');
+      return;
+    }
+
+    cashback -= investUAH;
+    cashbackEl.textContent = `₴${cashback.toFixed(2)}`;
+    localStorage.setItem('cashback', cashback);
+
+    const current = portfolio.find(p => p.currency === currency);
+    if (current) {
+      current.invested += investUAH;
+      current.amount += investUAH / priceUAH;
+    } else {
+      portfolio.push({
+        currency,
+        invested: investUAH,
+        amount: investUAH / priceUAH,
+        priceAtBuy: priceUAH
+      });
+    }
+
+    localStorage.setItem('portfolio', JSON.stringify(portfolio));
+    renderPortfolio();
+  }
+
+  // Відображення портфоліо
+  function renderPortfolio() {
+    portfolioBody.innerHTML = '';
+    let totalInvested = 0;
+    let totalProfit = 0;
+
+    portfolio.forEach(item => {
+      const currentRate = 1 / rates[item.currency];
+      const currentValue = item.amount * currentRate;
+      const profit = currentValue - item.invested;
+
+      totalInvested += item.invested;
+      totalProfit += profit;
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${item.currency}</td>
+        <td>₴${item.invested.toFixed(2)}</td>
+        <td>₴${currentValue.toFixed(2)}</td>
+        <td style="color: ${profit >= 0 ? '#22c55e' : '#ef4444'};">₴${profit.toFixed(2)}</td>
+      `;
+      portfolioBody.appendChild(row);
+    });
+
+    investedEl.textContent = `₴${totalInvested.toFixed(2)}`;
+    profitEl.textContent = `₴${totalProfit.toFixed(2)}`;
+  }
+
+  renderPortfolio();
 });
