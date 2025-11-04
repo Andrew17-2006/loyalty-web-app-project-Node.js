@@ -59,34 +59,16 @@ try {
 }
 
 // ======= Serve static files =======
-// Головна (index.html) у корені, решта — у /src
-app.use(express.static(path.join(__dirname))); // для index.html
+app.use(express.static(path.join(__dirname)));
 app.use('/src', express.static(path.join(__dirname, 'src')));
 
-// ======= Helper (має бути до маршрутів!) =======
+// ======= Helper =======
 function getUsernameFromReq(req) {
   if (req.cookies?.username) return req.cookies.username;
   if (req.get('x-username')) return req.get('x-username');
   if (req.body?.username) return req.body.username;
   return null;
 }
-
-// ======= Routes =======
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Якщо хтось переходить на /src/loyalty.html — теж дозволяємо
-app.get('/src/:page', (req, res) => {
-  const page = req.params.page;
-  const filePath = path.join(__dirname, 'src', page);
-  res.sendFile(filePath, (err) => {
-    if (err) {
-      console.error('❌ Page not found:', filePath);
-      res.status(404).send('❌ Page not found');
-    }
-  });
-});
 
 // ======= Pages =======
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
@@ -193,6 +175,38 @@ app.post('/api/loyalty-cards', (req, res) => {
   });
 });
 
+// ======= Update card =======
+app.put('/api/loyalty-cards/:id', (req, res) => {
+  const username = getUsernameFromReq(req);
+  const cardId = req.params.id;
+  const { card_name, store_name, color, code_value } = req.body;
+
+  if (!username) {
+    return res.json({ success: false, message: 'Користувач не авторизований' });
+  }
+
+  const checkSql = `
+    SELECT lc.* FROM loyalty_cards lc
+    JOIN users u ON lc.user_id = u.id
+    WHERE lc.id = ? AND u.username = ?
+  `;
+  db.query(checkSql, [cardId, username], (err, results) => {
+    if (err || results.length === 0) {
+      return res.json({ success: false, message: 'Картку не знайдено або немає доступу' });
+    }
+
+    const updateSql = `
+      UPDATE loyalty_cards
+      SET card_name = ?, store_name = ?, color = ?, code_value = ?
+      WHERE id = ?
+    `;
+    db.query(updateSql, [card_name, store_name, color, code_value, cardId], (err) => {
+      if (err) return res.json({ success: false, message: 'Помилка оновлення картки' });
+      res.json({ success: true, message: 'Картку оновлено' });
+    });
+  });
+});
+
 // ======= Delete card =======
 app.delete('/api/loyalty-cards/:id', (req, res) => {
   const username = getUsernameFromReq(req);
@@ -217,5 +231,3 @@ app.delete('/api/loyalty-cards/:id', (req, res) => {
 
 // ======= Start server =======
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
-// ======= end server.js =======/
