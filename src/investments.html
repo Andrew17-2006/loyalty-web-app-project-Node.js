@@ -4,49 +4,56 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cashback Invest - Investments</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="./styles/investments.css" />
+
+  <!-- JS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="./scripts/header.js"></script>
   <script src="./scripts/investments.js" defer></script>
+
   <link rel="icon" type="image/x-icon" href="./images/web-site_icon.png" />
-  <link rel="stylesheet" href="./styles/style.css"/>
 </head>
-
 <body>
-  <main class="investments-content">
-    <section class="investment-summary">
-      <h2>Investment Dashboard</h2>
-      <div class="summary-cards">
-        <div class="summary-item">
-          <h3>Available Cashback</h3>
-          <p id="cashback-balance">₴0</p>
-        </div>
-        <div class="summary-item">
-          <h3>Total Invested</h3>
-          <p id="invested-total">₴0</p>
-        </div>
-        <div class="summary-item">
-          <h3>Profit</h3>
-          <p id="invested-profit">₴0</p>
-        </div>
-      </div>
+  <main class="investments-container">
+    <section class="investments-header">
+      <h1>💹 Investments Dashboard</h1>
+      <p>Invest your cashback into currency or crypto assets</p>
     </section>
 
-    <section class="market-container">
-      <h2>Currency Market</h2>
-      <div id="market-list" class="market-list"></div>
+    <section class="chart-section">
+      <h2>Currency Trend</h2>
+      <canvas id="investmentChart" width="600" height="300"></canvas>
     </section>
 
-    <section class="portfolio-container">
+    <section class="investment-controls">
+      <h2>Available Assets</h2>
+      <select id="assetSelect">
+        <option value="USD">USD / UAH</option>
+        <option value="EUR">EUR / UAH</option>
+        <option value="BTC">BTC / USD</option>
+      </select>
+      <input type="number" id="investAmount" placeholder="Enter cashback amount ₴" min="1" />
+      <button id="investBtn">Invest Now</button>
+      <p id="balanceInfo">Your cashback balance: ₴0</p>
+    </section>
+
+    <section class="portfolio">
       <h2>Your Portfolio</h2>
-      <table class="portfolio-table">
+      <table>
         <thead>
           <tr>
             <th>Asset</th>
             <th>Invested (₴)</th>
-            <th>Current Value (₴)</th>
-            <th>Profit</th>
+            <th>Rate</th>
+            <th>Profit/Loss (₴)</th>
           </tr>
         </thead>
-        <tbody id="portfolio-body"></tbody>
+        <tbody id="portfolioTable"></tbody>
       </table>
     </section>
   </main>

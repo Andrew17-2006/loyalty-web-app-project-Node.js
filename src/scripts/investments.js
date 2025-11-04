@@ -1,99 +1,91 @@
-document.addEventListener('DOMContentLoaded', async () => {
-  const cashbackEl = document.getElementById('cashback-balance');
-  const investedEl = document.getElementById('invested-total');
-  const profitEl = document.getElementById('invested-profit');
-  const marketList = document.getElementById('market-list');
-  const portfolioBody = document.getElementById('portfolio-body');
+document.addEventListener("DOMContentLoaded", async () => {
+  const API_URL = "https://api.exchangerate.host/latest";
+  const assetSelect = document.getElementById("assetSelect");
+  const investBtn = document.getElementById("investBtn");
+  const amountInput = document.getElementById("investAmount");
+  const balanceInfo = document.getElementById("balanceInfo");
+  const portfolioTable = document.getElementById("portfolioTable");
+  const ctx = document.getElementById("investmentChart").getContext("2d");
 
-  let cashback = parseFloat(localStorage.getItem('cashback') || '1200'); // приклад
-  let portfolio = JSON.parse(localStorage.getItem('portfolio') || '[]');
+  let cashbackBalance = 1250; // test balance (from loyalty)
+  balanceInfo.textContent = `Your cashback balance: ₴${cashbackBalance}`;
 
-  // Показати кешбек
-  cashbackEl.textContent = `₴${cashback.toFixed(2)}`;
+  let rates = {};
+  let portfolio = [];
 
-  // Отримати курси валют
+  // === Load exchange rates ===
   async function fetchRates() {
-    const res = await fetch('https://api.exchangerate.host/latest?base=UAH&symbols=USD,EUR,GBP,BTC');
-    const data = await res.json();
-    return data.rates;
+    const response = await fetch(API_URL);
+    const data = await response.json();
+    rates = data.rates;
+    console.log("📈 Loaded rates:", rates);
+    renderChart();
   }
 
-  const rates = await fetchRates();
+  // === Render chart ===
+  function renderChart() {
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        datasets: [
+          {
+            label: "UAH / USD trend",
+            borderColor: "#00acdc",
+            data: [39.2, 39.5, 39.1, 38.9, 39.3, 39.6, 39.2],
+            fill: false,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: true } },
+        scales: { y: { beginAtZero: false } },
+      },
+    });
+  }
 
-  // Побудова ринку валют
-  Object.entries(rates).forEach(([currency, rate]) => {
-    const card = document.createElement('div');
-    card.className = 'market-card';
-    card.innerHTML = `
-      <h3>${currency}</h3>
-      <p>1 ${currency} = ${(1 / rate).toFixed(2)} ₴</p>
-      <button class="invest-btn">Invest</button>
-    `;
+  // === Invest logic ===
+  investBtn.addEventListener("click", () => {
+    const asset = assetSelect.value;
+    const amount = parseFloat(amountInput.value);
 
-    const investBtn = card.querySelector('.invest-btn');
-    investBtn.addEventListener('click', () => invest(currency, 1 / rate));
-
-    marketList.appendChild(card);
-  });
-
-  // Інвестування
-  function invest(currency, priceUAH) {
-    const amount = prompt(`Скільки ₴ кешбеку інвестувати у ${currency}?`, '100');
-    const investUAH = parseFloat(amount);
-
-    if (isNaN(investUAH) || investUAH <= 0 || investUAH > cashback) {
-      alert('❌ Некоректна сума або недостатньо коштів!');
+    if (!amount || amount <= 0) {
+      alert("Enter a valid amount!");
       return;
     }
 
-    cashback -= investUAH;
-    cashbackEl.textContent = `₴${cashback.toFixed(2)}`;
-    localStorage.setItem('cashback', cashback);
-
-    const current = portfolio.find(p => p.currency === currency);
-    if (current) {
-      current.invested += investUAH;
-      current.amount += investUAH / priceUAH;
-    } else {
-      portfolio.push({
-        currency,
-        invested: investUAH,
-        amount: investUAH / priceUAH,
-        priceAtBuy: priceUAH
-      });
+    if (amount > cashbackBalance) {
+      alert("Not enough cashback!");
+      return;
     }
 
-    localStorage.setItem('portfolio', JSON.stringify(portfolio));
+    const rate = asset === "BTC" ? 39000 : rates[asset] || 40;
+    const profit = (Math.random() * 200 - 100).toFixed(2);
+
+    cashbackBalance -= amount;
+    balanceInfo.textContent = `Your cashback balance: ₴${cashbackBalance.toFixed(2)}`;
+
+    portfolio.push({ asset, invested: amount, rate, profit });
     renderPortfolio();
-  }
+  });
 
-  // Відображення портфоліо
+  // === Render portfolio ===
   function renderPortfolio() {
-    portfolioBody.innerHTML = '';
-    let totalInvested = 0;
-    let totalProfit = 0;
-
-    portfolio.forEach(item => {
-      const currentRate = 1 / rates[item.currency];
-      const currentValue = item.amount * currentRate;
-      const profit = currentValue - item.invested;
-
-      totalInvested += item.invested;
-      totalProfit += profit;
-
-      const row = document.createElement('tr');
+    portfolioTable.innerHTML = "";
+    portfolio.forEach((p) => {
+      const row = document.createElement("tr");
       row.innerHTML = `
-        <td>${item.currency}</td>
-        <td>₴${item.invested.toFixed(2)}</td>
-        <td>₴${currentValue.toFixed(2)}</td>
-        <td style="color: ${profit >= 0 ? '#22c55e' : '#ef4444'};">₴${profit.toFixed(2)}</td>
+        <td>${p.asset}</td>
+        <td>${p.invested.toFixed(2)}</td>
+        <td>${p.rate}</td>
+        <td style="color:${p.profit >= 0 ? '#16a34a' : '#dc2626'}">
+          ${p.profit >= 0 ? "+" : ""}${p.profit}
+        </td>
       `;
-      portfolioBody.appendChild(row);
+      portfolioTable.appendChild(row);
     });
-
-    investedEl.textContent = `₴${totalInvested.toFixed(2)}`;
-    profitEl.textContent = `₴${totalProfit.toFixed(2)}`;
   }
 
-  renderPortfolio();
+  await fetchRates();
 });
