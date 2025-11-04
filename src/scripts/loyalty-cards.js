@@ -1,10 +1,6 @@
 // === Loyalty Cards Script ===
 // Отримуємо API_URL з header.js або створюємо резервний
-const API_URL = window.API_URL || (
-  window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://127.0.0.1:3000'
-    : 'https://loyalty-web-app-project-nodejs-production.up.railway.app'
-);
+const API_URL = window.API_URL;
 
 console.log('🌐 Loyalty Cards API URL:', API_URL);
 
