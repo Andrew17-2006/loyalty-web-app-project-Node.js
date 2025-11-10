@@ -14,8 +14,8 @@ const PORT = process.env.PORT || 8080;
 // ======= CORS =======
 app.use(cors({
   origin: [
-    'http://localhost:5500',
-    'http://127.0.0.1:5500',
+    'http://localhost:8080',
+    'http://127.0.0.1:8080',
     'https://andrew17-2006.github.io',
     'https://loyalty-web-app-project-nodejs-production.up.railway.app'
   ],
