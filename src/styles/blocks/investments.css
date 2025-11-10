@@ -6,39 +6,83 @@ body {
   padding: 0;
 }
 
+/* === Контейнер сторінки === */
 .investments-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 40px;
-  max-width: 900px;
-  margin: auto;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 30px;
 }
 
-.investments-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
+/* === Графік === */
 .chart-section {
-  background: #1e293b;
+  width: 100%;
+  background: rgba(30, 41, 59, 0.95);
   border-radius: 20px;
-  padding: 20px;
-  margin-bottom: 30px;
-  box-shadow: 0 0 15px rgba(0, 172, 220, 0.3);
+  padding: 30px;
+  box-shadow: 0 0 25px rgba(0, 172, 220, 0.3);
 }
 
+.chart-section h2 {
+  text-align: center;
+  color: #00d8ff;
+  margin-bottom: 20px;
+}
+
+.chart-controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.range-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.range-btn.active {
+  background: linear-gradient(135deg, #00d8ff, #0099cc);
+  border-color: #00d8ff;
+}
+
+.range-btn:hover {
+  transform: scale(1.05);
+}
+
+/* === Інвестиційна панель === */
+.investments-panel {
+  display: flex;
+  gap: 30px;
+  width: 100%;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 0 20px rgba(0, 200, 255, 0.15);
+}
+
+/* === Контролери === */
 .investment-controls {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  background: #1e293b;
-  padding: 25px;
-  border-radius: 20px;
-  margin-bottom: 40px;
 }
 
 .investment-controls select,
 .investment-controls input {
-  width: 250px;
+  width: 220px;
   padding: 10px;
   border-radius: 8px;
   border: none;
@@ -59,11 +103,12 @@ body {
   background-color: #008bb3;
 }
 
+/* === Портфоліо === */
 .portfolio {
+  flex: 2;
   background: #1e293b;
   border-radius: 20px;
   padding: 20px;
-  box-shadow: 0 0 15px rgba(0, 172, 220, 0.3);
 }
 
 table {
@@ -76,4 +121,17 @@ th, td {
   text-align: center;
   padding: 10px;
   border-bottom: 1px solid #334155;
+}
+
+canvas {
+  width: 100% !important;
+  height: 400px !important;
+}
+
+/* === Адаптивність === */
+@media (max-width: 900px) {
+  .investments-panel {
+    flex-direction: column;
+    align-items: center;
+  }
 }
