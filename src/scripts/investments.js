@@ -16,30 +16,46 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // === Завантаження історичних курсів ===
   async function fetchHistoricalData(asset, days) {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(end.getDate() - days);
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - days);
 
-    const startStr = start.toISOString().split("T")[0];
-    const endStr = end.toISOString().split("T")[0];
-    let base, symbols;
+  const startStr = start.toISOString().split("T")[0];
+  const endStr = end.toISOString().split("T")[0];
+  let base, symbols;
 
-    if (asset === "BTC") {
-      base = "USD";
-      symbols = "BTC";
+  if (asset === "BTC") {
+    // BTC fallback — немає даних у exchangerate.host/timeseries
+    console.warn("⚠️ Using BTC fallback data");
+    const labels = Array.from({ length: days }, (_, i) => `Day ${i + 1}`);
+    const values = Array.from({ length: days }, () =>
+      38000 + Math.random() * 2000
+    );
+    return { labels, values };
     } else {
       base = asset;
       symbols = "UAH";
     }
 
-    const url = `https://api.exchangerate.host/timeseries?start_date=${startStr}&end_date=${endStr}&base=${base}&symbols=${symbols}`;
-    const res = await fetch(url);
-    const data = await res.json();
+    const url = `https://api.exchangerate.host/v1/timeseries?start_date=${startStr}&end_date=${endStr}&base=${base}&symbols=${symbols}`;
 
-    const labels = Object.keys(data.rates);
-    const values = Object.values(data.rates).map(v => Object.values(v)[0]);
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
 
-    return { labels, values };
+      if (!data.rates) {
+        console.error("❌ No rates field in API response:", data);
+        return { labels: [], values: [] };
+      }
+
+      const labels = Object.keys(data.rates);
+      const values = Object.values(data.rates).map(v => Object.values(v)[0]);
+
+      return { labels, values };
+    } catch (err) {
+      console.error("❌ Error fetching rates:", err);
+      return { labels: [], values: [] };
+    }
   }
 
   // === Побудова графіка ===
@@ -76,7 +92,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!amount || amount <= 0) return alert("Enter a valid amount!");
     if (amount > cashbackBalance) return alert("Not enough cashback!");
 
-    const currentRate = chart.data.datasets[0].data.slice(-1)[0]; // останній курс
+    const currentRate = chart?.data?.datasets?.[0]?.data?.slice(-1)?.[0] || 40;
     const profitPercent = (Math.random() * 10 - 5).toFixed(2); // випадкові зміни %
 
     cashbackBalance -= amount;
