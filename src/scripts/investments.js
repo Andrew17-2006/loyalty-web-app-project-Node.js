@@ -15,24 +15,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // === Отримати історичні курси ===
   async function fetchHistoricalRates(asset, days) {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(end.getDate() - days);
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - days);
 
-    const base = asset;
-    const symbol = asset === "BTC" ? "USD" : "UAH";
+  const base = asset === "BTC" ? "USD" : "UAH";  // 🔹 UAH як базова
+  const symbol = asset === "BTC" ? "BTC" : asset;
 
-    const url = `https://api.exchangerate.host/timeseries?base=${base}&symbols=${symbol}&start_date=${start
-      .toISOString()
-      .split("T")[0]}&end_date=${end.toISOString().split("T")[0]}`;
+  const url = `https://api.exchangerate.host/timeseries?base=${base}&symbols=${symbol}&start_date=${start
+    .toISOString()
+    .split("T")[0]}&end_date=${end.toISOString().split("T")[0]}`;
 
-    const response = await fetch(url);
-    const data = await response.json();
-    if (!data.rates) return { labels: [], values: [] };
+  const response = await fetch(url);
+  const data = await response.json();
 
-    const labels = Object.keys(data.rates);
-    const values = Object.values(data.rates).map((v) => Object.values(v)[0]);
-    return { labels, values };
+  if (!data.rates) return { labels: [], values: [] };
+
+  const labels = Object.keys(data.rates);
+  const values = Object.values(data.rates).map((v) => Object.values(v)[0]);
+  return { labels, values };
   }
 
   // === Побудова графіка ===

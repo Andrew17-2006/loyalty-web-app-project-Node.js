@@ -135,3 +135,9 @@ canvas {
     align-items: center;
   }
 }
+
+canvas#investmentChart {
+  display: block;
+  width: 100% !important;
+  height: 400px !important;
+}
