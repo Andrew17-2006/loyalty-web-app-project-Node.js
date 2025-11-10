@@ -1,5 +1,10 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  const ctx = document.getElementById("investmentChart").getContext("2d");
+  const ctx = document.getElementById("investmentChart")?.getContext("2d");
+  if (!ctx) {
+    console.error("❌ Canvas not found or context is null");
+    return;
+  }
+
   const assetSelect = document.getElementById("assetSelect");
   const investBtn = document.getElementById("investBtn");
   const amountInput = document.getElementById("investAmount");
@@ -16,160 +21,87 @@ document.addEventListener("DOMContentLoaded", async () => {
   let autoUpdateInterval;
 
   balanceInfo.textContent = `Your cashback balance: ₴${cashbackBalance}`;
-  assetSelect.value = currentAsset;
 
-  // === Toast ===
-  function showToast(msg) {
-    const toast = document.createElement("div");
-    toast.textContent = msg;
-    toast.className = "toast";
-    document.body.appendChild(toast);
-    setTimeout(() => toast.classList.add("show"), 10);
-    setTimeout(() => toast.classList.remove("show"), 3000);
-    setTimeout(() => toast.remove(), 3500);
-  }
-
-  // === Fetch current rate ===
   async function fetchCurrentRate(asset) {
     const url = `https://api.exchangerate.host/latest?base=${asset}&symbols=${asset === "BTC" ? "USD" : "UAH"}`;
     const res = await fetch(url);
     const data = await res.json();
-    const rate = Object.values(data.rates)[0];
+    const rate = data?.rates ? Object.values(data.rates)[0] : 0;
     currentRate = rate;
     return rate;
   }
 
-  // === Fetch historical data ===
   async function fetchHistoricalData(asset, days) {
     const end = new Date();
     const start = new Date();
     start.setDate(end.getDate() - days);
 
-    const startStr = start.toISOString().split("T")[0];
-    const endStr = end.toISOString().split("T")[0];
-    const url = `https://api.exchangerate.host/timeseries?base=${asset}&symbols=${asset === "BTC" ? "USD" : "UAH"}&start_date=${startStr}&end_date=${endStr}`;
-
+    const url = `https://api.exchangerate.host/timeseries?base=${asset}&symbols=${asset === "BTC" ? "USD" : "UAH"}&start_date=${start.toISOString().split("T")[0]}&end_date=${end.toISOString().split("T")[0]}`;
     const res = await fetch(url);
     const data = await res.json();
 
-    if (!data.success || !data.rates) {
-      console.warn("⚠️ No rates available, generating mock data");
+    if (!data?.rates) {
+      console.warn("⚠️ No data, generating mock points");
       const labels = Array.from({ length: days }, (_, i) => `Day ${i + 1}`);
-      const values = Array.from({ length: days }, () => currentRate + (Math.random() - 0.5) * 0.5);
+      const values = Array.from({ length: days }, () => currentRate || 40);
       return { labels, values };
     }
 
     const labels = Object.keys(data.rates);
-    const values = Object.values(data.rates).map(v => Object.values(v)[0]);
+    const values = Object.values(data.rates).map((v) => Object.values(v)[0]);
     return { labels, values };
   }
 
-  // === Render chart ===
   async function renderChart(asset = currentAsset, days = currentRange) {
-    const rate = await fetchCurrentRate(asset);
-    const { labels, values } = await fetchHistoricalData(asset, days);
+    try {
+      const rate = await fetchCurrentRate(asset);
+      const { labels, values } = await fetchHistoricalData(asset, days);
 
-    if (chart) chart.destroy();
-    if (!labels.length) return;
+      if (chart) chart.destroy();
+      if (!labels?.length) return;
 
-    const colorTrend = values[values.length - 1] > values[0] ? "#16a34a" : "#dc2626";
-
-    chart = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels,
-        datasets: [
-          {
-            label: `${asset} trend (${days} days)`,
-            data: values,
-            borderColor: colorTrend,
-            backgroundColor: "rgba(0, 172, 220, 0.15)",
-            fill: true,
-            tension: 0.4,
-            borderWidth: 3,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: { ticks: { color: "#e2e8f0" } },
-          y: { ticks: { color: "#e2e8f0" } },
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (ctx) =>
-                `${ctx.parsed.y.toFixed(2)} ${asset === "BTC" ? "USD" : "UAH"}`,
+      chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: `${asset} trend (${days} days)`,
+              data: values,
+              borderColor: "#00d8ff",
+              backgroundColor: "rgba(0, 216, 255, 0.15)",
+              fill: true,
+              tension: 0.4,
+              borderWidth: 3,
             },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+          },
+          scales: {
+            x: { ticks: { color: "#e2e8f0" } },
+            y: { ticks: { color: "#e2e8f0" } },
           },
         },
-      },
-    });
+      });
 
-    document.querySelector(".chart-section h2").textContent =
-      `${asset} Rate — ${rate.toFixed(2)} ${asset === "BTC" ? "USD" : "UAH"}`;
-  }
-
-  // === Investment logic ===
-  investBtn.addEventListener("click", () => {
-    const asset = assetSelect.value;
-    const amount = parseFloat(amountInput.value);
-
-    if (!amount || amount <= 0) return alert("Enter a valid amount!");
-    if (amount > cashbackBalance) return alert("Not enough cashback!");
-
-    const rate = currentRate || 40;
-    const profitPercent = (Math.random() * 10 - 5).toFixed(2);
-    const profit = (amount * profitPercent / 100).toFixed(2);
-
-    cashbackBalance -= amount;
-    balanceInfo.textContent = `Your cashback balance: ₴${cashbackBalance.toFixed(2)}`;
-
-    portfolio.push({ asset, invested: amount, rate, change: profitPercent, profit });
-    renderPortfolio();
-    renderStats();
-    showToast(`✅ Invested ₴${amount.toFixed(2)} in ${asset}`);
-  });
-
-  // === Portfolio rendering ===
-  function renderPortfolio() {
-    portfolioTable.innerHTML = "";
-    portfolio.forEach((p) => {
-      const color = p.profit >= 0 ? "#16a34a" : "#dc2626";
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${p.asset}</td>
-        <td>${p.invested.toFixed(2)}</td>
-        <td>${p.rate.toFixed(2)}</td>
-        <td style="color:${color}">${p.change}%</td>
-        <td style="color:${color}">${p.profit >= 0 ? "+" : ""}${p.profit}</td>
-      `;
-      portfolioTable.appendChild(row);
-    });
-  }
-
-  function renderStats() {
-    const statsEl = document.getElementById("portfolioStats");
-    if (portfolio.length === 0) {
-      statsEl.innerHTML = `<p style="opacity:0.7">No investments yet</p>`;
-      return;
+      document.querySelector(".chart-section h2").textContent =
+        `${asset} Rate — ${rate.toFixed(2)} ${asset === "BTC" ? "USD" : "UAH"}`;
+    } catch (err) {
+      console.error("❌ Chart rendering failed:", err);
     }
+  }
 
-    const totalInvested = portfolio.reduce((s, p) => s + p.invested, 0);
-    const totalProfit = portfolio.reduce((s, p) => s + Number(p.profit), 0);
-    const avgChange = portfolio.reduce((s, p) => s + Number(p.change), 0) / portfolio.length;
-    const uniqueAssets = new Set(portfolio.map((p) => p.asset)).size;
-    const color = totalProfit >= 0 ? "#16a34a" : "#dc2626";
-
-    statsEl.innerHTML = `
-      <div class="stats-box"><strong>💸 Total Invested:</strong> ₴${totalInvested.toFixed(2)}</div>
-      <div class="stats-box"><strong>📊 Avg Profit:</strong> ${avgChange.toFixed(2)}%</div>
-      <div class="stats-box"><strong>💹 Total Profit:</strong> <span style="color:${color}">${totalProfit >= 0 ? "+" : ""}${totalProfit.toFixed(2)}</span> ₴</div>
-      <div class="stats-box"><strong>🪙 Active Assets:</strong> ${uniqueAssets}</div>
-    `;
+  // === Інтервал оновлення кожні 10 секунд ===
+  function startAutoUpdate() {
+    if (autoUpdateInterval) clearInterval(autoUpdateInterval);
+    autoUpdateInterval = setInterval(() => {
+      renderChart(currentAsset, currentRange);
+    }, 10000);
   }
 
   rangeBtns.forEach((btn) => {
@@ -177,7 +109,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       rangeBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       currentRange = parseInt(btn.dataset.range);
-      await renderChart(assetSelect.value, currentRange);
+      await renderChart(currentAsset, currentRange);
     });
   });
 
@@ -185,14 +117,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     currentAsset = assetSelect.value;
     await renderChart(currentAsset, currentRange);
   });
-
-  // === Auto-update every 10 seconds ===
-  async function startAutoUpdate() {
-    if (autoUpdateInterval) clearInterval(autoUpdateInterval);
-    autoUpdateInterval = setInterval(() => {
-      renderChart(currentAsset, currentRange);
-    }, 10000);
-  }
 
   await renderChart(currentAsset, currentRange);
   startAutoUpdate();
