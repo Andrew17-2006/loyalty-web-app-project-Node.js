@@ -23,14 +23,6 @@
 <body>
   <main class="main-content investments-page">
 
-    <!-- 🟦 Головний контейнер -->
-    <div class="investments-container">
-      <section class="investments-header">
-        <h1>💹 Investments Dashboard</h1>
-        <p>Invest your cashback into currency or crypto assets and track growth in real time</p>
-      </section>
-    </div>
-
     <!-- 🟨 Контейнер графіка -->
     <div class="investments-container chart-container">
       <section class="chart-section">
@@ -40,14 +32,16 @@
           <button class="range-btn" data-range="30">30 days</button>
           <button class="range-btn" data-range="365">1 year</button>
         </div>
-        <canvas id="investmentChart" width="900" height="400"></canvas>
+        <div class="chart-wrapper">
+          <canvas id="investmentChart"></canvas>
+        </div>
       </section>
     </div>
 
-    <!-- 🟩 Контейнер інвестування -->
-    <div class="investments-container controls-container">
+    <!-- 🟩 Контейнер інвестицій + портфеля -->
+    <div class="investments-container combined-container">
       <section class="investment-controls">
-        <h2>Available Assets</h2>
+        <h2>Manage Investments</h2>
         <select id="assetSelect">
           <option value="USD">USD / UAH</option>
           <option value="EUR">EUR / UAH</option>
@@ -57,12 +51,9 @@
         <button id="investBtn">Invest Now</button>
         <p id="balanceInfo">Your cashback balance: ₴0</p>
       </section>
-    </div>
 
-    <!-- 🟧 Контейнер портфеля -->
-    <div class="investments-container portfolio-container">
       <section class="portfolio">
-        <h2>Your Portfolio</h2>
+        <h2>Current Portfolio</h2>
         <table>
           <thead>
             <tr>

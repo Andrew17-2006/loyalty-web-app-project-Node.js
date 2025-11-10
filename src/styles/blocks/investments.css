@@ -183,3 +183,18 @@ canvas#investmentChart {
     max-width: 100%;
   }
 }
+
+.chart-wrapper {
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+canvas#investmentChart {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 900px;
+}

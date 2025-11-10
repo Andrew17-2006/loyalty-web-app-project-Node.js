@@ -9,15 +9,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let cashbackBalance = 1250;
   let chart;
-  let portfolio = JSON.parse(localStorage.getItem("portfolio")) || [];
-  let currentRange = parseInt(localStorage.getItem("chartRange")) || 30;
-  let currentAsset = localStorage.getItem("chartAsset") || "USD";
+  let portfolio = [];
+  let currentRange = 30;
+  let currentAsset = "USD";
   let currentRate = 0;
 
   balanceInfo.textContent = `Your cashback balance: ₴${cashbackBalance}`;
   assetSelect.value = currentAsset;
 
-  // Toast message
+  // === Toast ===
   function showToast(msg) {
     const toast = document.createElement("div");
     toast.textContent = msg;
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(() => toast.remove(), 3500);
   }
 
-  // Fetch current rate
+  // === Fetch current rate ===
   async function fetchCurrentRate(asset) {
     const url = `https://api.exchangerate.host/latest?base=${asset}&symbols=${asset === "BTC" ? "USD" : "UAH"}`;
     const res = await fetch(url);
@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return rate;
   }
 
-  // Fetch historical data
+  // === Fetch historical data ===
   async function fetchHistoricalData(asset, days) {
     const end = new Date();
     const start = new Date();
@@ -54,11 +54,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = await res.json();
 
     if (!data.rates) {
-      console.warn("⚠️ No data, generating fallback dataset");
       const labels = Array.from({ length: days }, (_, i) => `Day ${i + 1}`);
-      const values = Array.from({ length: days }, () =>
-        currentRate + (Math.random() - 0.5) * 0.5
-      );
+      const values = Array.from({ length: days }, () => currentRate + (Math.random() - 0.5) * 0.5);
       return { labels, values };
     }
 
@@ -67,15 +64,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     return { labels, values };
   }
 
-  // Render chart
+  // === Render chart ===
   async function renderChart(asset = currentAsset, days = currentRange) {
     const rate = await fetchCurrentRate(asset);
     const { labels, values } = await fetchHistoricalData(asset, days);
-
-    if (!labels.length) {
-      console.error("❌ No data for chart rendering");
-      return;
-    }
 
     if (chart) chart.destroy();
 
@@ -98,6 +90,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         scales: { y: { beginAtZero: false } },
         plugins: {
           legend: { display: false },
@@ -110,13 +103,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       },
     });
 
-    document.querySelector(".chart-section h2").textContent = `${asset} Rate — ${rate.toFixed(2)} ${asset === "BTC" ? "USD" : "UAH"}`;
-
-    localStorage.setItem("chartAsset", asset);
-    localStorage.setItem("chartRange", days);
+    document.querySelector(".chart-section h2").textContent =
+      `${asset} Rate — ${rate.toFixed(2)} ${asset === "BTC" ? "USD" : "UAH"}`;
   }
 
-  // Invest logic
+  // === Invest logic ===
   investBtn.addEventListener("click", () => {
     const asset = assetSelect.value;
     const amount = parseFloat(amountInput.value);
@@ -132,14 +123,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     balanceInfo.textContent = `Your cashback balance: ₴${cashbackBalance.toFixed(2)}`;
 
     portfolio.push({ asset, invested: amount, rate, change: profitPercent, profit });
-    localStorage.setItem("portfolio", JSON.stringify(portfolio));
-
     renderPortfolio();
     renderStats();
     showToast(`✅ Invested ₴${amount.toFixed(2)} in ${asset}`);
   });
 
-  // Portfolio table
+  // === Portfolio render ===
   function renderPortfolio() {
     portfolioTable.innerHTML = "";
     portfolio.forEach((p) => {
@@ -156,7 +145,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Portfolio stats
   function renderStats() {
     const statsEl = document.getElementById("portfolioStats");
     if (!statsEl) return;
@@ -180,7 +168,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     `;
   }
 
-  // Buttons
+  // === Events ===
   rangeBtns.forEach((btn) => {
     btn.addEventListener("click", async () => {
       rangeBtns.forEach((b) => b.classList.remove("active"));
@@ -195,11 +183,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     await renderChart(currentAsset, currentRange);
   });
 
-  // Initial render
+  // === Init ===
   await renderChart(currentAsset, currentRange);
   renderPortfolio();
   renderStats();
-
-  // Auto-refresh every 5 minutes
-  setInterval(() => renderChart(currentAsset, currentRange), 300000);
 });
