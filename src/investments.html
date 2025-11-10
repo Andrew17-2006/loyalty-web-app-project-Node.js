@@ -7,13 +7,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet" />
-
-  <!-- CSS -->
   <link rel="stylesheet" href="./styles/style.css" />
 
   <!-- JS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="./scripts/header.js"></script>
+  <script src="./scripts/header.js" defer></script>
   <script src="./scripts/investments.js" defer></script>
 
   <link rel="icon" type="image/x-icon" href="./images/web-site_icon.png" />
@@ -27,6 +25,13 @@
 
     <section class="chart-section">
       <h2>Currency Trend</h2>
+
+      <div class="chart-controls">
+        <button class="range-btn" data-range="7">7 Days</button>
+        <button class="range-btn" data-range="30">30 Days</button>
+        <button class="range-btn" data-range="365">1 Year</button>
+      </div>
+
       <canvas id="investmentChart" width="600" height="300"></canvas>
     </section>
 
@@ -50,6 +55,7 @@
             <th>Asset</th>
             <th>Invested (₴)</th>
             <th>Rate</th>
+            <th>Change %</th>
             <th>Profit/Loss (₴)</th>
           </tr>
         </thead>

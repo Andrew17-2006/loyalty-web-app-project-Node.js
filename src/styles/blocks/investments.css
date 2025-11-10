@@ -77,3 +77,28 @@ th, td {
   padding: 10px;
   border-bottom: 1px solid #334155;
 }
+
+.chart-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.range-btn {
+  background: transparent;
+  border: 1px solid #00acdc;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.range-btn:hover,
+.range-btn.active {
+  background: #00acdc;
+  color: #0f172a;
+  font-weight: 600;
+}
