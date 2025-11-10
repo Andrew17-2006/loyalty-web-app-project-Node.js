@@ -4,75 +4,58 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cashback Invest - Investments</title>
-
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet" />
 
-  <!-- ✅ Styles -->
-  <link rel="stylesheet" href="/styles/style.css" />
-  
-  <!-- Header + JS -->
-  <script src="/scripts/header.js" defer></script>
-  <script src="/scripts/investments.js" defer></script>
-  <!-- ✅ Chart.js підключається ПЕРЕД твоїм скриптом -->
+  <!-- CSS -->
+  <link rel="stylesheet" href="./styles/style.css" />
+
+  <!-- JS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="./scripts/header.js"></script>
+  <script src="./scripts/investments.js" defer></script>
 
-  <link rel="icon" type="image/x-icon" href="/images/web-site_icon.png" />
+  <link rel="icon" type="image/x-icon" href="./images/web-site_icon.png" />
 </head>
-
 <body>
-  <main class="main-content investments-page">
-    <div class="investments-container chart-container">
-      <section class="chart-section">
-        <h2>Currency Trend</h2>
-        <div class="chart-controls">
-          <button class="range-btn active" data-range="7">7 days</button>
-          <button class="range-btn" data-range="30">30 days</button>
-          <button class="range-btn" data-range="365">1 year</button>
-        </div>
+  <main class="investments-container">
+    <section class="investments-header">
+      <h1>💹 Investments Dashboard</h1>
+      <p>Invest your cashback into currency or crypto assets</p>
+    </section>
 
-        <!-- ✅ Canvas має фіксовану висоту -->
-        <div class="chart-wrapper">
-          <canvas id="investmentChart" width="800" height="400"></canvas>
-        </div>
-      </section>
-    </div>
+    <section class="chart-section">
+      <h2>Currency Trend</h2>
+      <canvas id="investmentChart" width="600" height="300"></canvas>
+    </section>
 
-    <div class="investments-container combined-container">
-      <section class="investment-controls">
-        <h2>Manage Investments</h2>
-        <select id="assetSelect">
-          <option value="USD">USD / UAH</option>
-          <option value="EUR">EUR / UAH</option>
-          <option value="BTC">BTC / USD</option>
-        </select>
-        <input type="number" id="investAmount" placeholder="Enter cashback amount ₴" min="1" />
-        <button id="investBtn">Invest Now</button>
-        <p id="balanceInfo">Your cashback balance: ₴0</p>
-      </section>
+    <section class="investment-controls">
+      <h2>Available Assets</h2>
+      <select id="assetSelect">
+        <option value="USD">USD / UAH</option>
+        <option value="EUR">EUR / UAH</option>
+        <option value="BTC">BTC / USD</option>
+      </select>
+      <input type="number" id="investAmount" placeholder="Enter cashback amount ₴" min="1" />
+      <button id="investBtn">Invest Now</button>
+      <p id="balanceInfo">Your cashback balance: ₴0</p>
+    </section>
 
-      <section class="portfolio">
-        <h2>Current Portfolio</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Asset</th>
-              <th>Invested (₴)</th>
-              <th>Rate</th>
-              <th>Change %</th>
-              <th>Profit/Loss (₴)</th>
-            </tr>
-          </thead>
-          <tbody id="portfolioTable"></tbody>
-        </table>
-
-        <div id="portfolioStats" class="portfolio-stats"></div>
-      </section>
-    </div>
+    <section class="portfolio">
+      <h2>Your Portfolio</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Asset</th>
+            <th>Invested (₴)</th>
+            <th>Rate</th>
+            <th>Profit/Loss (₴)</th>
+          </tr>
+        </thead>
+        <tbody id="portfolioTable"></tbody>
+      </table>
+    </section>
   </main>
-
-  <footer class="footer"></footer>
 </body>
 </html>
