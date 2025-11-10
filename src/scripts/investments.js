@@ -89,6 +89,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
+  // === Початкове завантаження ===
+  setTimeout(async () => {
+    await renderChart();
+  }, 200);
+
   // === Автоматичне оновлення графіка ===
   setInterval(() => {
     renderChart(currentAsset, currentRange);

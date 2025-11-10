@@ -141,3 +141,25 @@ canvas#investmentChart {
   width: 100% !important;
   height: 400px !important;
 }
+
+.chart-section {
+  width: 100%;
+  max-width: 1100px;
+  background: rgba(30, 41, 59, 0.95);
+  border-radius: 20px;
+  padding: 30px;
+  margin: 0 auto;
+  box-shadow: 0 0 25px rgba(0, 172, 220, 0.3);
+}
+
+.chart-wrapper {
+  width: 100%;
+  height: 420px;
+  position: relative;
+}
+
+#investmentChart {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
