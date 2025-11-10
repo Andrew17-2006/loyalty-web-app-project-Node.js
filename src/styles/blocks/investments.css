@@ -1,36 +1,80 @@
-body {
-  font-family: 'Orbitron', sans-serif;
-  background-color: #0f172a;
-  color: white;
-  margin: 0;
-  padding: 0;
-}
-
+/* === Investment Dashboard === */
 .investments-container {
-  padding: 40px;
-  max-width: 900px;
-  margin: auto;
+  width: 100%;
+  max-width: 1200px;
+  margin: 50px auto;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 25px;
+  padding: 40px 60px;
+  box-sizing: border-box;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 0 25px rgba(0, 200, 255, 0.1);
+  color: white;
 }
 
 .investments-header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
+}
+
+.investments-header h1 {
+  font-size: 32px;
+  color: #00d8ff;
 }
 
 .chart-section {
-  background: #1e293b;
+  width: 100%;
+  margin: 0 auto 40px;
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 20px;
-  padding: 20px;
-  margin-bottom: 30px;
-  box-shadow: 0 0 15px rgba(0, 172, 220, 0.3);
+  padding: 30px;
+  box-shadow: 0 0 25px rgba(0, 172, 220, 0.3);
+  text-align: center;
 }
 
+.chart-controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.range-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+  transition: all 0.3s ease;
+}
+
+.range-btn:hover {
+  background: rgba(0, 172, 220, 0.5);
+}
+
+.range-btn.active {
+  background: linear-gradient(135deg, #00d8ff, #0099cc);
+  box-shadow: 0 0 15px rgba(0, 216, 255, 0.5);
+}
+
+canvas#investmentChart {
+  width: 100% !important;
+  height: auto !important;
+  max-width: 900px;
+  display: block;
+  margin: 0 auto;
+}
+
+/* === Controls Section === */
 .investment-controls {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  background: #1e293b;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.05);
   padding: 25px;
   border-radius: 20px;
   margin-bottom: 40px;
@@ -38,81 +82,104 @@ body {
 
 .investment-controls select,
 .investment-controls input {
-  width: 250px;
+  width: 260px;
   padding: 10px;
   border-radius: 8px;
   border: none;
   font-size: 14px;
+  font-family: 'Orbitron', sans-serif;
 }
 
 #investBtn {
   background-color: #00acdc;
   color: white;
-  padding: 10px 20px;
+  padding: 10px 25px;
   border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-#investBtn:hover {
-  background-color: #008bb3;
-}
-
-.portfolio {
-  background: #1e293b;
-  border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 0 15px rgba(0, 172, 220, 0.3);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  color: white;
-}
-
-th, td {
-  text-align: center;
-  padding: 10px;
-  border-bottom: 1px solid #334155;
-}
-
-.chart-controls {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.range-btn {
-  background: transparent;
-  border: 1px solid #00acdc;
-  color: white;
-  padding: 6px 12px;
   border-radius: 8px;
   cursor: pointer;
   transition: 0.3s;
   font-family: 'Orbitron', sans-serif;
 }
 
-.range-btn:hover,
-.range-btn.active {
-  background: #00acdc;
-  color: #0f172a;
-  font-weight: 600;
+#investBtn:hover {
+  background-color: #0091b5;
 }
 
-.chart-section {
-  max-width: 800px;
-  margin: 0 auto 30px auto;
+#balanceInfo {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* === Portfolio === */
+.portfolio {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 0 25px rgba(0, 172, 220, 0.3);
+}
+
+.portfolio table {
+  width: 100%;
+  border-collapse: collapse;
+  color: white;
+}
+
+.portfolio th, .portfolio td {
   text-align: center;
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-canvas#investmentChart {
-  width: 100% !important;
-  max-width: 700px;
-  height: auto !important;
-  display: block;
-  margin: 0 auto;
+.portfolio th {
+  color: #00d8ff;
+}
+
+/* === Portfolio Stats === */
+.portfolio-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+  margin-top: 25px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.stats-box {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px 15px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0,200,255,0.1);
+}
+
+/* === Toast === */
+.toast {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  background: #00acdc;
+  color: white;
+  font-family: 'Orbitron', sans-serif;
+  padding: 12px 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,172,220,0.4);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 9999;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* === Responsive === */
+@media (max-width: 900px) {
+  .investments-container {
+    padding: 25px;
+  }
+  canvas#investmentChart {
+    max-width: 100%;
+  }
 }

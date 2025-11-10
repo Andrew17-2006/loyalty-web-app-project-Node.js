@@ -7,35 +7,49 @@ document.addEventListener("DOMContentLoaded", async () => {
   const portfolioTable = document.getElementById("portfolioTable");
   const rangeBtns = document.querySelectorAll(".range-btn");
 
-  let cashbackBalance = 1250; // приклад — можна підключити з лояльності
-  balanceInfo.textContent = `Your cashback balance: ₴${cashbackBalance}`;
-
+  let cashbackBalance = 1250; // test balance
   let chart;
   let portfolio = JSON.parse(localStorage.getItem("portfolio")) || [];
-  let currentRange = 7;
+  let currentRange = parseInt(localStorage.getItem("chartRange")) || 30;
+  let currentAsset = localStorage.getItem("chartAsset") || "USD";
+  let currentRate = 0;
 
-  // === Завантаження історичних курсів ===
+  balanceInfo.textContent = `Your cashback balance: ₴${cashbackBalance}`;
+  assetSelect.value = currentAsset;
+
+  // === Toast notification ===
+  function showToast(msg) {
+    const toast = document.createElement("div");
+    toast.textContent = msg;
+    toast.className = "toast";
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add("show"), 10);
+    setTimeout(() => toast.classList.remove("show"), 3000);
+    setTimeout(() => toast.remove(), 3500);
+  }
+
+  // === Fetch current rate ===
+  async function fetchCurrentRate(asset) {
+    const url = `https://api.exchangerate.host/latest?base=${asset}&symbols=${
+      asset === "BTC" ? "USD" : "UAH"
+    }`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const rate = Object.values(data.rates)[0];
+    currentRate = rate;
+    return rate;
+  }
+
+  // === Fetch historical data ===
   async function fetchHistoricalData(asset, days) {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(end.getDate() - days);
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - days);
 
-  const startStr = start.toISOString().split("T")[0];
-  const endStr = end.toISOString().split("T")[0];
-  let base, symbols;
-
-  if (asset === "BTC") {
-    // BTC fallback — немає даних у exchangerate.host/timeseries
-    console.warn("⚠️ Using BTC fallback data");
-    const labels = Array.from({ length: days }, (_, i) => `Day ${i + 1}`);
-    const values = Array.from({ length: days }, () =>
-      38000 + Math.random() * 2000
-    );
-    return { labels, values };
-    } else {
-      base = asset;
-      symbols = "UAH";
-    }
+    const startStr = start.toISOString().split("T")[0];
+    const endStr = end.toISOString().split("T")[0];
+    let base = asset;
+    let symbols = asset === "BTC" ? "USD" : "UAH";
 
     const url = `https://api.exchangerate.host/v1/timeseries?start_date=${startStr}&end_date=${endStr}&base=${base}&symbols=${symbols}`;
 
@@ -44,47 +58,78 @@ document.addEventListener("DOMContentLoaded", async () => {
       const data = await res.json();
 
       if (!data.rates) {
-        console.error("❌ No rates field in API response:", data);
-        return { labels: [], values: [] };
+        console.warn("⚠️ No data, generating fallback dataset");
+        const labels = Array.from({ length: days }, (_, i) => `Day ${i + 1}`);
+        const values = Array.from({ length: days }, () =>
+          currentRate + (Math.random() - 0.5) * 0.5
+        );
+        return { labels, values };
       }
 
       const labels = Object.keys(data.rates);
-      const values = Object.values(data.rates).map(v => Object.values(v)[0]);
-
+      const values = Object.values(data.rates).map(
+        (v) => Object.values(v)[0]
+      );
       return { labels, values };
     } catch (err) {
-      console.error("❌ Error fetching rates:", err);
+      console.error("❌ Error fetching historical data:", err);
       return { labels: [], values: [] };
     }
   }
 
-  // === Побудова графіка ===
-  async function renderChart(asset = assetSelect.value, days = currentRange) {
+  // === Render chart ===
+  async function renderChart(asset = currentAsset, days = currentRange) {
+    const rate = await fetchCurrentRate(asset);
     const { labels, values } = await fetchHistoricalData(asset, days);
 
     if (chart) chart.destroy();
+
+    const colorTrend =
+      values[values.length - 1] > values[0] ? "#16a34a" : "#dc2626";
+
     chart = new Chart(ctx, {
       type: "line",
       data: {
         labels,
-        datasets: [{
-          label: `${asset} trend (${days} days)`,
-          data: values,
-          borderColor: "#00acdc",
-          backgroundColor: "rgba(0, 172, 220, 0.2)",
-          fill: true,
-          tension: 0.3
-        }]
+        datasets: [
+          {
+            label: `${asset} trend (${days} days)`,
+            data: values,
+            borderColor: colorTrend,
+            backgroundColor: "rgba(0, 172, 220, 0.15)",
+            fill: true,
+            tension: 0.3,
+          },
+        ],
       },
       options: {
         responsive: true,
         scales: { y: { beginAtZero: false } },
-        plugins: { legend: { display: false } }
-      }
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) =>
+                `${ctx.parsed.y.toFixed(2)} ${
+                  asset === "BTC" ? "USD" : "UAH"
+                }`,
+            },
+          },
+        },
+      },
     });
+
+    document.querySelector(
+      ".chart-section h2"
+    ).textContent = `${asset} Rate — ${rate.toFixed(2)} ${
+      asset === "BTC" ? "USD" : "UAH"
+    }`;
+
+    localStorage.setItem("chartAsset", asset);
+    localStorage.setItem("chartRange", days);
   }
 
-  // === Інвестування ===
+  // === Invest logic ===
   investBtn.addEventListener("click", () => {
     const asset = assetSelect.value;
     const amount = parseFloat(amountInput.value);
@@ -92,25 +137,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!amount || amount <= 0) return alert("Enter a valid amount!");
     if (amount > cashbackBalance) return alert("Not enough cashback!");
 
-    const currentRate = chart?.data?.datasets?.[0]?.data?.slice(-1)?.[0] || 40;
-    const profitPercent = (Math.random() * 10 - 5).toFixed(2); // випадкові зміни %
+    const rate = currentRate || 40;
+    const profitPercent = (Math.random() * 10 - 5).toFixed(2);
+    const profit = (amount * profitPercent / 100).toFixed(2);
 
     cashbackBalance -= amount;
     balanceInfo.textContent = `Your cashback balance: ₴${cashbackBalance.toFixed(2)}`;
 
-    portfolio.push({
-      asset,
-      invested: amount,
-      rate: currentRate,
-      change: profitPercent,
-      profit: (amount * profitPercent / 100).toFixed(2)
-    });
-
+    portfolio.push({ asset, invested: amount, rate, change: profitPercent, profit });
     localStorage.setItem("portfolio", JSON.stringify(portfolio));
+
     renderPortfolio();
+    renderStats();
+    showToast(`✅ Invested ₴${amount.toFixed(2)} in ${asset}`);
   });
 
-  // === Відображення портфеля ===
+  // === Render portfolio ===
   function renderPortfolio() {
     portfolioTable.innerHTML = "";
     portfolio.forEach((p) => {
@@ -127,17 +169,52 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // === Кнопки діапазонів ===
-  rangeBtns.forEach(btn => {
+  // === Render portfolio stats ===
+  function renderStats() {
+    const statsEl = document.getElementById("portfolioStats");
+    if (!statsEl) return;
+
+    if (portfolio.length === 0) {
+      statsEl.innerHTML = `<p style="opacity:0.7">No investments yet</p>`;
+      return;
+    }
+
+    const totalInvested = portfolio.reduce((s, p) => s + p.invested, 0);
+    const totalProfit = portfolio.reduce((s, p) => s + Number(p.profit), 0);
+    const avgChange =
+      portfolio.reduce((s, p) => s + Number(p.change), 0) / portfolio.length;
+    const uniqueAssets = new Set(portfolio.map((p) => p.asset)).size;
+
+    const color = totalProfit >= 0 ? "#16a34a" : "#dc2626";
+    statsEl.innerHTML = `
+      <div class="stats-box"><strong>💸 Total Invested:</strong> ₴${totalInvested.toFixed(2)}</div>
+      <div class="stats-box"><strong>📊 Avg Profit:</strong> ${avgChange.toFixed(2)}%</div>
+      <div class="stats-box"><strong>💹 Total Profit:</strong> <span style="color:${color}">${totalProfit >= 0 ? "+" : ""}${totalProfit.toFixed(2)}</span> ₴</div>
+      <div class="stats-box"><strong>🪙 Active Assets:</strong> ${uniqueAssets}</div>
+    `;
+  }
+
+  // === Range buttons ===
+  rangeBtns.forEach((btn) => {
     btn.addEventListener("click", async () => {
-      rangeBtns.forEach(b => b.classList.remove("active"));
+      rangeBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       currentRange = parseInt(btn.dataset.range);
       await renderChart(assetSelect.value, currentRange);
     });
   });
 
-  // === Початкове відображення ===
-  await renderChart("USD", currentRange);
+  // === Asset selector ===
+  assetSelect.addEventListener("change", async () => {
+    currentAsset = assetSelect.value;
+    await renderChart(currentAsset, currentRange);
+  });
+
+  // === Initial render ===
+  await renderChart(currentAsset, currentRange);
   renderPortfolio();
+  renderStats();
+
+  // === Auto refresh every 5 minutes ===
+  setInterval(() => renderChart(currentAsset, currentRange), 300000);
 });

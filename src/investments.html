@@ -4,9 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cashback Invest - Investments</title>
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet" />
+
+  <!-- CSS -->
   <link rel="stylesheet" href="./styles/style.css" />
 
   <!-- JS -->
@@ -18,23 +22,24 @@
 </head>
 <body>
   <main class="investments-container">
+    <!-- Header Section -->
     <section class="investments-header">
       <h1>💹 Investments Dashboard</h1>
-      <p>Invest your cashback into currency or crypto assets</p>
+      <p>Invest your cashback into currency or crypto assets and track growth over time</p>
     </section>
 
+    <!-- Chart Section -->
     <section class="chart-section">
       <h2>Currency Trend</h2>
-
       <div class="chart-controls">
-        <button class="range-btn" data-range="7">7 Days</button>
-        <button class="range-btn" data-range="30">30 Days</button>
-        <button class="range-btn" data-range="365">1 Year</button>
+        <button class="range-btn active" data-range="7">7 days</button>
+        <button class="range-btn" data-range="30">30 days</button>
+        <button class="range-btn" data-range="365">1 year</button>
       </div>
-
-      <canvas id="investmentChart" width="600" height="300"></canvas>
+      <canvas id="investmentChart" width="900" height="400"></canvas>
     </section>
 
+    <!-- Investment Controls -->
     <section class="investment-controls">
       <h2>Available Assets</h2>
       <select id="assetSelect">
@@ -42,11 +47,13 @@
         <option value="EUR">EUR / UAH</option>
         <option value="BTC">BTC / USD</option>
       </select>
+
       <input type="number" id="investAmount" placeholder="Enter cashback amount ₴" min="1" />
       <button id="investBtn">Invest Now</button>
       <p id="balanceInfo">Your cashback balance: ₴0</p>
     </section>
 
+    <!-- Portfolio Section -->
     <section class="portfolio">
       <h2>Your Portfolio</h2>
       <table>
@@ -61,7 +68,13 @@
         </thead>
         <tbody id="portfolioTable"></tbody>
       </table>
+
+      <!-- Portfolio Stats -->
+      <div id="portfolioStats" class="portfolio-stats"></div>
     </section>
   </main>
+
+  <!-- Footer (auto-loaded by header.js if needed) -->
+  <footer class="footer"></footer>
 </body>
 </html>
