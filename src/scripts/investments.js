@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let currentRange = 30;
   let currentAsset = "USD";
   let currentRate = 0;
+  let autoUpdateInterval;
 
   balanceInfo.textContent = `Your cashback balance: ₴${cashbackBalance}`;
   assetSelect.value = currentAsset;
@@ -46,21 +47,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const startStr = start.toISOString().split("T")[0];
     const endStr = end.toISOString().split("T")[0];
-    let base = asset;
-    let symbols = asset === "BTC" ? "USD" : "UAH";
+    const url = `https://api.exchangerate.host/timeseries?base=${asset}&symbols=${asset === "BTC" ? "USD" : "UAH"}&start_date=${startStr}&end_date=${endStr}`;
 
-    const url = `https://api.exchangerate.host/timeseries?start_date=${startStr}&end_date=${endStr}&base=${base}&symbols=${symbols}`;
     const res = await fetch(url);
     const data = await res.json();
 
-    if (!data.rates) {
+    if (!data.success || !data.rates) {
+      console.warn("⚠️ No rates available, generating mock data");
       const labels = Array.from({ length: days }, (_, i) => `Day ${i + 1}`);
       const values = Array.from({ length: days }, () => currentRate + (Math.random() - 0.5) * 0.5);
       return { labels, values };
     }
 
     const labels = Object.keys(data.rates);
-    const values = Object.values(data.rates).map((v) => Object.values(v)[0]);
+    const values = Object.values(data.rates).map(v => Object.values(v)[0]);
     return { labels, values };
   }
 
@@ -70,6 +70,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const { labels, values } = await fetchHistoricalData(asset, days);
 
     if (chart) chart.destroy();
+    if (!labels.length) return;
 
     const colorTrend = values[values.length - 1] > values[0] ? "#16a34a" : "#dc2626";
 
@@ -84,19 +85,24 @@ document.addEventListener("DOMContentLoaded", async () => {
             borderColor: colorTrend,
             backgroundColor: "rgba(0, 172, 220, 0.15)",
             fill: true,
-            tension: 0.3,
+            tension: 0.4,
+            borderWidth: 3,
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        scales: { y: { beginAtZero: false } },
+        scales: {
+          x: { ticks: { color: "#e2e8f0" } },
+          y: { ticks: { color: "#e2e8f0" } },
+        },
         plugins: {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (ctx) => `${ctx.parsed.y.toFixed(2)} ${asset === "BTC" ? "USD" : "UAH"}`,
+              label: (ctx) =>
+                `${ctx.parsed.y.toFixed(2)} ${asset === "BTC" ? "USD" : "UAH"}`,
             },
           },
         },
@@ -107,7 +113,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       `${asset} Rate — ${rate.toFixed(2)} ${asset === "BTC" ? "USD" : "UAH"}`;
   }
 
-  // === Invest logic ===
+  // === Investment logic ===
   investBtn.addEventListener("click", () => {
     const asset = assetSelect.value;
     const amount = parseFloat(amountInput.value);
@@ -128,12 +134,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     showToast(`✅ Invested ₴${amount.toFixed(2)} in ${asset}`);
   });
 
-  // === Portfolio render ===
+  // === Portfolio rendering ===
   function renderPortfolio() {
     portfolioTable.innerHTML = "";
     portfolio.forEach((p) => {
-      const row = document.createElement("tr");
       const color = p.profit >= 0 ? "#16a34a" : "#dc2626";
+      const row = document.createElement("tr");
       row.innerHTML = `
         <td>${p.asset}</td>
         <td>${p.invested.toFixed(2)}</td>
@@ -147,8 +153,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function renderStats() {
     const statsEl = document.getElementById("portfolioStats");
-    if (!statsEl) return;
-
     if (portfolio.length === 0) {
       statsEl.innerHTML = `<p style="opacity:0.7">No investments yet</p>`;
       return;
@@ -158,8 +162,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const totalProfit = portfolio.reduce((s, p) => s + Number(p.profit), 0);
     const avgChange = portfolio.reduce((s, p) => s + Number(p.change), 0) / portfolio.length;
     const uniqueAssets = new Set(portfolio.map((p) => p.asset)).size;
-
     const color = totalProfit >= 0 ? "#16a34a" : "#dc2626";
+
     statsEl.innerHTML = `
       <div class="stats-box"><strong>💸 Total Invested:</strong> ₴${totalInvested.toFixed(2)}</div>
       <div class="stats-box"><strong>📊 Avg Profit:</strong> ${avgChange.toFixed(2)}%</div>
@@ -168,7 +172,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     `;
   }
 
-  // === Events ===
   rangeBtns.forEach((btn) => {
     btn.addEventListener("click", async () => {
       rangeBtns.forEach((b) => b.classList.remove("active"));
@@ -183,8 +186,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     await renderChart(currentAsset, currentRange);
   });
 
-  // === Init ===
+  // === Auto-update every 10 seconds ===
+  async function startAutoUpdate() {
+    if (autoUpdateInterval) clearInterval(autoUpdateInterval);
+    autoUpdateInterval = setInterval(() => {
+      renderChart(currentAsset, currentRange);
+    }, 10000);
+  }
+
   await renderChart(currentAsset, currentRange);
-  renderPortfolio();
-  renderStats();
+  startAutoUpdate();
 });
