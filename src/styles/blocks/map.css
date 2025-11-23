@@ -11,10 +11,8 @@
   display: flex;
   width: 100%;
   height: 100%;
-  position: relative;
 }
 
-/* Панель управління зліва */
 .map-controls {
   width: 350px;
   background: rgba(15, 23, 42, 0.95);
@@ -35,12 +33,10 @@
 .map-controls h3 {
   color: #94a3b8;
   font-size: 14px;
-  margin: 15px 0 10px 0;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  margin-bottom: 10px;
+  margin-top: 25px;
 }
 
-/* Пошук */
 .search-box {
   display: flex;
   gap: 10px;
@@ -54,7 +50,6 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   color: white;
-  font-family: 'Orbitron', sans-serif;
   font-size: 13px;
 }
 
@@ -70,172 +65,44 @@
   border-radius: 8px;
   cursor: pointer;
   font-size: 18px;
-  transition: all 0.3s ease;
 }
 
-.search-box button:hover {
-  background: #00ffff;
-  transform: scale(1.05);
-}
-
-/* Кнопка локації */
 .location-btn {
   width: 100%;
   padding: 12px;
   background: linear-gradient(135deg, #16a34a, #15803d);
-  border: none;
   border-radius: 8px;
   color: white;
-  font-family: 'Orbitron', sans-serif;
   font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-bottom: 20px;
-}
-
-.location-btn:hover {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
-}
-
-.location-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Фільтри */
-.filters {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-}
-
-.filters label {
-  display: block;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 13px;
-  margin: 8px 0;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.filters label:hover {
-  color: #00d8ff;
-}
-
-.filters input[type="checkbox"] {
-  margin-right: 8px;
   cursor: pointer;
 }
 
-/* Список магазинів */
 .stores-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-.loading-text {
-  text-align: center;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 13px;
-  padding: 20px;
+  margin-top: 15px;
 }
 
 .store-item {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px;
   border-radius: 10px;
-  padding: 15px;
   cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.store-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: #00d8ff;
-  transform: translateX(5px);
 }
 
 .store-item h4 {
   color: white;
-  margin: 0 0 8px 0;
-  font-size: 16px;
+  margin-bottom: 5px;
 }
 
 .store-item p {
-  color: rgba(255, 255, 255, 0.7);
-  margin: 5px 0;
+  color: #cbd5e1;
   font-size: 12px;
 }
 
-.store-item .cashback {
-  color: #22c55e;
-  font-weight: 600;
-}
-
-.store-item .distance {
-  color: #00d8ff;
-  font-weight: 600;
-}
-
-/* Карта */
 .map {
   flex: 1;
   height: 100%;
-  position: relative;
-}
-
-/* Scrollbar */
-.map-controls::-webkit-scrollbar {
-  width: 6px;
-}
-
-.map-controls::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.map-controls::-webkit-scrollbar-thumb {
-  background: rgba(0, 216, 255, 0.5);
-  border-radius: 3px;
-}
-
-.map-controls::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 216, 255, 0.8);
-}
-
-/* Адаптивність */
-@media (max-width: 768px) {
-  .map-container {
-    flex-direction: column;
-  }
-
-  .map-controls {
-    width: 100%;
-    height: 40%;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .map {
-    height: 60%;
-  }
-}
-
-.custom-marker {
-  background: transparent !important;
-  border: none !important;
-}
-
-.leaflet-popup-content-wrapper {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.leaflet-popup-tip {
-  background: white;
 }
