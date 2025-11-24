@@ -59,8 +59,18 @@ try {
 }
 
 // ======= Serve static files =======
+
+// Віддаємо src/scripts як /scripts
+app.use('/scripts', express.static(path.join(__dirname, 'src', 'scripts')));
+
+// Віддаємо src/styles як /styles
+app.use('/styles', express.static(path.join(__dirname, 'src', 'styles')));
+
+// Віддаємо src/images як /images
+app.use('/images', express.static(path.join(__dirname, 'src', 'images')));
+
+// Віддаємо кореневі файли (html, server icons і т.д.)
 app.use(express.static(path.join(__dirname)));
-app.use('/src', express.static(path.join(__dirname, 'src')));
 
 // ======= Helper =======
 function getUsernameFromReq(req) {
