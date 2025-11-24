@@ -2,7 +2,7 @@ let map;
 let infoWindow;
 let userMarker;
 
-// ⬇️ КАРТА: завантаження карток з БД
+// == LOAD USER CARDS ==
 async function loadUserCards() {
   const resp = await fetch(`${API_URL}/api/loyalty-cards`, {
     credentials: "include"
@@ -18,7 +18,7 @@ async function loadUserCards() {
   }));
 }
 
-// ⬇️ Пошук магазину через Google Places API
+// == GOOGLE PLACES SEARCH ==
 function searchStoreLocation(name) {
   return new Promise(resolve => {
     const service = new google.maps.places.PlacesService(map);
@@ -38,7 +38,7 @@ function searchStoreLocation(name) {
   });
 }
 
-// ⬇️ Показати маркер
+// == SHOW MARKER ==
 function showMarker(place, originalCard) {
   const marker = new google.maps.Marker({
     position: place.geometry.location,
@@ -65,20 +65,24 @@ function showMarker(place, originalCard) {
   return marker;
 }
 
-// ⬇️ Маршрут у Google Maps
+// == ROUTE ==
 function openRoute(lat, lng) {
   window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`);
 }
 
-// ⬇️ Список магазинов
+// == LIST ==
 function renderList(items) {
   const list = document.getElementById("storesList");
-  list.innerHTML = items.map(item => `
-    <div class="store-item" onclick="focusPoint(${item.lat}, ${item.lng})">
-      <h4>${item.name}</h4>
-      <p>${item.address}</p>
-    </div>
-  `).join("");
+  list.innerHTML = items
+    .map(
+      item => `
+      <div class="store-item" onclick="focusPoint(${item.lat}, ${item.lng})">
+        <h4>${item.name}</h4>
+        <p>${item.address}</p>
+      </div>
+    `
+    )
+    .join("");
 }
 
 function focusPoint(lat, lng) {
@@ -86,17 +90,21 @@ function focusPoint(lat, lng) {
   map.setZoom(16);
 }
 
-// ⬇️ Головна ініціалізація
+// == INIT ==
 async function initMap() {
   map = new google.maps.Map(document.getElementById("map"), {
-    center: { lat: 50.4501, lng: 30.5234 },
-    zoom: 13
+    center: { lat: 50.45, lng: 30.523 },
+    zoom: 13,
+    styles: [
+      { elementType: "geometry", stylers: [{ color: "#0f172a" }] },
+      { elementType: "labels.text.fill", stylers: [{ color: "#e5e7eb" }] },
+      { elementType: "labels.text.stroke", stylers: [{ color: "#020617" }] }
+    ]
   });
 
   infoWindow = new google.maps.InfoWindow();
 
   const cards = await loadUserCards();
-
   const foundStores = [];
 
   for (const card of cards) {
@@ -117,36 +125,44 @@ async function initMap() {
 
   renderList(foundStores);
 
-  // 🔵 локатор
   document.getElementById("myLocationBtn").onclick = () => {
-    navigator.geolocation.getCurrentPosition(pos => {
-      const loc = {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude
-      };
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const userPos = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        };
 
-      if (!userMarker) {
-        userMarker = new google.maps.Marker({
-          position: loc,
-          map,
-          icon: { path: google.maps.SymbolPath.CIRCLE, scale: 10, fillColor: "#00d8ff", fillOpacity: 1 }
-        });
-      } else {
-        userMarker.setPosition(loc);
-      }
+        if (!userMarker) {
+          userMarker = new google.maps.Marker({
+            position: userPos,
+            map,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 10,
+              fillColor: "#00d8ff",
+              fillOpacity: 1,
+              strokeColor: "#ffffff",
+              strokeWeight: 3
+            }
+          });
+        } else {
+          userMarker.setPosition(userPos);
+        }
 
-      map.setCenter(loc);
-      map.setZoom(15);
-    });
+        map.setCenter(userPos);
+        map.setZoom(15);
+      },
+      err => alert("Не вдалося визначити місцезнаходження.")
+    );
   };
 
-  // 🔍 пошук
   document.getElementById("searchBtn").onclick = async () => {
     const q = document.getElementById("searchInput").value;
     if (!q) return;
 
     const place = await searchStoreLocation(q);
-    if (!place) return;
+    if (!place) return alert("Нічого не знайдено");
 
     showMarker(place, { card_name: q });
 
@@ -155,5 +171,6 @@ async function initMap() {
   };
 }
 
-window.openRoute = openRoute;
+window.initMap = initMap;
 window.focusPoint = focusPoint;
+window.openRoute = openRoute;

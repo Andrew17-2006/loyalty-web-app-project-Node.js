@@ -1,49 +1,66 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cashback Invest - Map</title>
+  <title>Cashback Invest – Map</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet" />
 
+  <!-- CSS -->
   <link rel="stylesheet" href="./styles/style.css" />
   <link rel="stylesheet" href="./styles/map.css" />
 
+  <!-- Header -->
   <script src="./scripts/header.js"></script>
 
-  <!-- GOOGLE MAPS API -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDUq0nkvWKvX7EWbNrwkRsEvhLp_7qcWeU&libraries=places&callback=initMap" async defer></script>
-
+  <!-- Map script -->
   <script src="./scripts/map.js" defer></script>
 
-  <link rel="icon" type="image/x-icon" href="./images/web-site_icon.png">
+  <!-- Google Maps API -->
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDUq0nkvWKvX7EWbNrwkRsEvhLp_7qcWeU&libraries=places&callback=initMap"
+    async
+    defer>
+  </script>
+
+  <link rel="icon" type="image/x-icon" href="./images/web-site_icon.png" />
 </head>
 
 <body>
+  <!-- Header auto-load -->
   <main class="main-content">
 
     <div class="map-container">
 
+      <!-- LEFT PANEL -->
       <div class="map-controls">
         <h2>Партнерські магазини</h2>
 
+        <!-- Search -->
         <div class="search-box">
-          <input id="searchInput" type="text" placeholder="Пошук магазину або адреси..." />
+          <input type="text" id="searchInput" placeholder="Пошук магазину або адреси..." />
           <button id="searchBtn">🔍</button>
         </div>
 
+        <!-- Location button -->
         <button id="myLocationBtn" class="location-btn">📍 Моє місцезнаходження</button>
 
-        <h3>Мої картки:</h3>
-        <div id="storesList" class="stores-list">
-          <p class="loading-text">Завантаження..</p>
+        <!-- User cards result -->
+        <h3>МОЇ КАРТКИ</h3>
+        <div class="stores-list" id="storesList">
+          <p class="loading-text">Магазини завантажуються...</p>
         </div>
       </div>
 
-      <div id="map" class="map"></div>
+      <!-- RIGHT: MAP -->
+      <div class="map-wrapper">
+        <div id="map"></div>
+      </div>
+
     </div>
 
   </main>
