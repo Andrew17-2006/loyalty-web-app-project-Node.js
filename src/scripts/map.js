@@ -207,3 +207,17 @@ async function initMap() {
 window.initMap = initMap;
 window.focusPoint = focusPoint;
 window.openRoute = openRoute;
+
+// ======= Fallback if Google API not loaded correctly(reconnecting) =======
+window.addEventListener("load", () => {
+  if (typeof google === "undefined" || !google.maps) {
+    console.warn("Google API не встиг — повторна ініціалізація...");
+
+    setTimeout(() => {
+      if (typeof initMap === "function") {
+        console.log("🔁 Повторний запуск initMap()");
+        initMap();
+      }
+    }, 500);
+  }
+});
