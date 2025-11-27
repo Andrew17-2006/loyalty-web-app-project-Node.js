@@ -59,10 +59,13 @@ app.use('/scripts', express.static(path.join(__dirname, 'src', 'scripts')));
 // Віддаємо src/styles як /styles
 app.use('/styles', express.static(path.join(__dirname, 'src', 'styles')));
 
+// Виправлення: віддаємо вкладену папку blocks
+app.use('/styles/blocks', express.static(path.join(__dirname, 'src', 'styles', 'blocks')));
+
 // Віддаємо src/images як /images
 app.use('/images', express.static(path.join(__dirname, 'src', 'images')));
 
-// Віддаємо кореневі файли (html, server icons і т.д.)
+// Віддаємо кореневі файли
 app.use(express.static(path.join(__dirname)));
 
 // ======= Helper =======
