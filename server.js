@@ -13,15 +13,8 @@ const PORT = process.env.PORT || 8080;
 
 // ======= CORS =======
 app.use(cors({
-  origin: [
-    'http://localhost:8080',
-    'http://127.0.0.1:8080',
-    'https://andrew17-2006.github.io',
-    'https://loyalty-web-app-project-nodejs-production.up.railway.app'
-  ],
-  credentials: true,
-  allowedHeaders: ['Content-Type', 'x-username'],
-  optionsSuccessStatus: 200
+  origin: true,
+  credentials: true
 }));
 
 // ======= Middleware =======
