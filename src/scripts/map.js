@@ -3,7 +3,9 @@ let infoWindow;
 let userMarker;
 let foundStores = [];
 
-// --- DISTANCE (Haversine) ---
+window.initMap = initMap;
+
+// --- Haversine ---
 function distance(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -39,39 +41,40 @@ async function loadUserCards() {
   }
 }
 
-// --- SEARCH STORE ---
-function searchStoreLocation(name) {
-  return new Promise(resolve => {
-    const service = new google.maps.places.PlacesService(map);
+// --- NEW PLACES API 2025 ---
+async function searchStoreLocation(name) {
+  try {
+    const { Place } = google.maps.places;
 
-    service.textSearch(
-      {
-        query: `${name} Kyiv`,
-        fields: ["name", "geometry", "formatted_address"]
-      },
-      (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && results.length)
-          resolve(results[0]);
-        else resolve(null);
-      }
-    );
-  });
+    const request = {
+      textQuery: `${name} Kyiv`,
+      fields: ["displayName", "location", "formattedAddress"]
+    };
+
+    const { places } = await Place.searchByText(request);
+
+    return places?.length ? places[0] : null;
+
+  } catch (e) {
+    console.log("Search error:", e);
+    return null;
+  }
 }
 
 // --- SHOW MARKER ---
-function showMarker(place, originalCard) {
+function showMarker(place, card) {
   const marker = new google.maps.Marker({
-    position: place.geometry.location,
+    position: place.location,
     map,
-    title: place.name
+    title: place.displayName
   });
 
   const html = `
     <div style="font-family:Orbitron;padding:5px;">
-      <h3>${originalCard.card_name}</h3>
-      <p><b>Магазин:</b> ${place.name}</p>
-      <p><b>Адреса:</b> ${place.formatted_address}</p>
-      <button onclick="openRoute(${place.geometry.location.lat()}, ${place.geometry.location.lng()})">
+      <h3>${card.card_name}</h3>
+      <p><b>Магазин:</b> ${place.displayName}</p>
+      <p><b>Адреса:</b> ${place.formattedAddress}</p>
+      <button onclick="openRoute(${place.location.lat()}, ${place.location.lng()})">
         📍 Маршрут
       </button>
     </div>
@@ -81,8 +84,6 @@ function showMarker(place, originalCard) {
     infoWindow.setContent(html);
     infoWindow.open(map, marker);
   });
-
-  return marker;
 }
 
 // --- RENDER LIST ---
@@ -94,27 +95,24 @@ function renderList(items) {
     return;
   }
 
-  list.innerHTML = items
-    .map(
-      item => `
-      <div class="store-item" onclick="focusPoint(${item.lat}, ${item.lng})">
-        <h4>${item.name}</h4>
-        <p>${item.address}</p>
-        ${item.distance ? `<p style="color:#00d8ff">📍 ${item.distance.toFixed(1)} км</p>` : ""}
-      </div>`
-    )
-    .join("");
-}
-
-// --- FOCUS ON POINT ---
-function focusPoint(lat, lng) {
-  map.setCenter({ lat, lng });
-  map.setZoom(16);
+  list.innerHTML = items.map(i => `
+    <div class="store-item" onclick="focusPoint(${i.lat}, ${i.lng})">
+      <h4>${i.name}</h4>
+      <p>${i.address}</p>
+      ${i.distance ? `<p style="color:#00d8ff">📍 ${i.distance.toFixed(1)} км</p>` : ""}
+    </div>
+  `).join("");
 }
 
 // --- ROUTE ---
 function openRoute(lat, lng) {
   window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`);
+}
+
+// --- FOCUS ---
+function focusPoint(lat, lng) {
+  map.setCenter({ lat, lng });
+  map.setZoom(16);
 }
 
 // --- INIT MAP ---
@@ -138,16 +136,17 @@ async function initMap() {
 
   for (const card of cards) {
     if (card.store === "Інший") continue;
+
     const place = await searchStoreLocation(card.store);
     if (!place) continue;
 
     showMarker(place, card);
 
     foundStores.push({
-      name: place.name,
-      address: place.formatted_address,
-      lat: place.geometry.location.lat(),
-      lng: place.geometry.location.lng()
+      name: place.displayName,
+      address: place.formattedAddress,
+      lat: place.location.lat(),
+      lng: place.location.lng()
     });
   }
 
@@ -179,7 +178,6 @@ async function initMap() {
       map.setCenter(userPos);
       map.setZoom(15);
 
-      // SORT BY DISTANCE
       foundStores.forEach(store => {
         store.distance = distance(
           userPos.lat, userPos.lng,
@@ -188,35 +186,11 @@ async function initMap() {
       });
 
       foundStores.sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
+
       renderList(foundStores);
     });
   };
-
-  // --- SEARCH BUTTON ---
-  document.getElementById("searchBtn").onclick = async () => {
-    const q = document.getElementById("searchInput").value.trim();
-    if (!q) return;
-
-    const place = await searchStoreLocation(q);
-    if (!place) return alert("Нічого не знайдено");
-
-    showMarker(place, { card_name: q });
-    map.setCenter(place.geometry.location);
-    map.setZoom(15);
-  };
 }
 
-// === REGISTER GLOBAL FUNCTIONS (correct order!) ===
-window.initMap = initMap;
 window.focusPoint = focusPoint;
 window.openRoute = openRoute;
-
-// === SAFE fallback (only runs if Google Maps REALLY failed) ===
-window.addEventListener("load", () => {
-  setTimeout(() => {
-    if (typeof google !== "undefined" && google.maps && typeof initMap === "function") {
-      console.log("♻ Retry initMap()");
-      initMap();
-    }
-  }, 300);
-});

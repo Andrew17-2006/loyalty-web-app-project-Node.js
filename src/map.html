@@ -20,12 +20,21 @@
   <!-- Map script (no cache) -->
   <script src="/src/scripts/map.js?v=999"></script>
 
-  <script 
-    src="https://maps.googleapis.com/maps/api/js?key=KEY&libraries=places&callback=initMap"
-    async
-    defer
-  ></script>
+  <!-- Google Maps API Loader -->
+  <script type="module">
+    import { Loader } from "https://cdn.jsdelivr.net/npm/@googlemaps/js-api-loader@1.16.6/dist/index.min.js";
 
+    const loader = new Loader({
+      apiKey: "AIzaSyDUq0nkvWKvX7EWbNrwkRsEvhLp_7qcWeU",
+      version: "weekly",
+      libraries: ["places"]
+    });
+
+    loader.load().then(() => {
+      console.log("Google Maps Loaded");
+      if (window.initMap) window.initMap();
+    });
+  </script>
 
   <link rel="icon" type="image/x-icon" href="./images/web-site_icon.png" />
 </head>
