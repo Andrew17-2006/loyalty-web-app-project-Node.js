@@ -14,30 +14,30 @@
   <link rel="stylesheet" href="./styles/style.css" />
   <link rel="stylesheet" href="./styles/map.css" />
 
-  <!-- Header -->
+  <!-- Header auto-load -->
   <script src="./scripts/header.js"></script>
 
-  <!-- Map script -->
-  <script src="/src/scripts/map.js" defer></script>
+  <!-- Map script (no cache) -->
+  <script src="/src/scripts/map.js?v=2" defer></script>
 
   <!-- Google Maps API -->
-  <script
+  <script 
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDUq0nkvWKvX7EWbNrwkRsEvhLp_7qcWeU&libraries=places&callback=initMap"
-    async
-    defer>
+    async defer>
   </script>
 
   <link rel="icon" type="image/x-icon" href="./images/web-site_icon.png" />
 </head>
 
 <body>
-  <!-- Header auto-load -->
+
   <main class="main-content">
 
     <div class="map-container">
 
       <!-- LEFT PANEL -->
       <div class="map-controls">
+
         <h2>Партнерські магазини</h2>
 
         <!-- Search -->
@@ -49,14 +49,15 @@
         <!-- Location button -->
         <button id="myLocationBtn" class="location-btn">📍 Моє місцезнаходження</button>
 
-        <!-- User cards result -->
-        <h3>МОЇ КАРТКИ</h3>
-        <div class="stores-list" id="storesList">
+        <h3>Мої картки</h3>
+
+        <div id="storesList" class="stores-list">
           <p class="loading-text">Магазини завантажуються...</p>
         </div>
+
       </div>
 
-      <!-- RIGHT: MAP -->
+      <!-- MAP -->
       <div class="map-wrapper">
         <div id="map"></div>
       </div>
@@ -66,5 +67,6 @@
   </main>
 
   <footer class="footer"></footer>
+
 </body>
 </html>

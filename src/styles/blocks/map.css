@@ -2,7 +2,7 @@
 .main-content {
   margin-top: 80px;
   padding: 0;
-  height: calc(100vh - 80px);
+  height: calc(100vh - 200px);
 }
 
 /* ===== Контейнер карти ===== */
