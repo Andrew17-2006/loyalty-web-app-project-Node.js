@@ -119,6 +119,8 @@ function openRoute(lat, lng) {
 
 // --- INIT MAP ---
 async function initMap() {
+  console.log("🗺 initMap RUN");
+
   map = new google.maps.Map(document.getElementById("map"), {
     center: { lat: 50.45, lng: 30.523 },
     zoom: 13,
@@ -204,20 +206,17 @@ async function initMap() {
   };
 }
 
+// === REGISTER GLOBAL FUNCTIONS (correct order!) ===
 window.initMap = initMap;
 window.focusPoint = focusPoint;
 window.openRoute = openRoute;
 
-// ======= Fallback if Google API not loaded correctly(reconnecting) =======
+// === SAFE fallback (only runs if Google Maps REALLY failed) ===
 window.addEventListener("load", () => {
-  if (typeof google === "undefined" || !google.maps) {
-    console.warn("Google API не встиг — повторна ініціалізація...");
-
-    setTimeout(() => {
-      if (typeof initMap === "function") {
-        console.log("🔁 Повторний запуск initMap()");
-        initMap();
-      }
-    }, 500);
-  }
+  setTimeout(() => {
+    if (typeof google !== "undefined" && google.maps && typeof initMap === "function") {
+      console.log("♻ Retry initMap()");
+      initMap();
+    }
+  }, 300);
 });
