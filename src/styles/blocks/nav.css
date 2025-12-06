@@ -215,3 +215,204 @@ body {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
 }
+
+
+/* container widget styling */
+
+.widget {
+  height: 100%;
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  cursor: pointer;
+
+  transition: 0.2s;
+  overflow: hidden;
+}
+
+.widget_char {
+  height: 100%;
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 16px;
+  box-sizing: border-box;
+  padding: 16px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  cursor: pointer;
+
+  transition: 0.2s;
+  overflow: hidden;
+}
+
+.widget:hover {
+  border-color: #00d8ff;
+  background: rgba(255,255,255,0.08);
+  transform: translateY(-3px);
+}
+
+.widget-title {
+  color: #00d8ff;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: Orbitron, sans-serif;
+}
+
+.widget-content {
+  flex: 1;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.widget-content img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.85;
+  transition: 0.3s;
+}
+
+.widget:hover img {
+  opacity: 1;
+  transform: scale(1.04);
+}
+
+.widget_char .widget-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* притискає графік вниз */
+}
+
+
+
+/* === GRID LAYOUT FOR MAIN PAGE === */
+
+.main-content {
+  margin-top: 80px;
+  padding: 20px 40px;
+  min-height: calc(100vh - 80px);
+  box-sizing: border-box;
+}
+
+/* 2 responsive columns */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+
+  width: 90%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* Each widget box */
+.grid-item {
+  height: 360px;
+  display: flex;
+}
+
+/* Banner container */
+.grid-full {
+  grid-column: span 2;
+  height: 340px;
+}
+
+/* Make images fit inside */
+.home-grid__banner,
+.grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+}
+
+
+/* Loyalty cards widget */
+.cards-preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  padding: 20px 0 10px;
+}
+
+.neon-card {
+  width: 120px;
+  height: 180px;
+  border-radius: 20px;
+  background: rgba(0, 216, 255, 0.05);
+  border: 2px solid rgba(0, 216, 255, 0.35);
+  backdrop-filter: blur(8px);
+  transition: 0.3s ease;
+
+  box-shadow:
+    0 0 20px rgba(0, 216, 255, 0.3),
+    inset 0 0 15px rgba(0, 216, 255, 0.2);
+}
+
+/* Центральна карта */
+.card-center {
+  width: 150px;
+  height: 220px;
+  border: 2px solid rgba(0, 216, 255, 0.6);
+
+  box-shadow:
+    0 0 30px rgba(0, 216, 255, 0.8),
+    0 0 50px rgba(0, 216, 255, 0.4),
+    inset 0 0 20px rgba(0, 216, 255, 0.4);
+}
+
+/* Ліва & права */
+.card-left {
+  transform: rotate(-10deg) translateY(15px);
+  opacity: 0.7;
+}
+
+.card-right {
+  transform: rotate(10deg) translateY(15px);
+  opacity: 0.7;
+}
+
+/* Hover effect */
+.neon-card:hover {
+  opacity: 1;
+  transform: translateY(-5px) scale(1.05);
+  box-shadow:
+    0 0 45px rgba(0, 216, 255, 1),
+    inset 0 0 25px rgba(0, 216, 255, 0.6);
+}
+
+
+/*==============================================*/
+/* ==== Chart Widget Styling ==== */
+/*==============================================*/
+
+.chart-container {
+  height: 230px;
+  margin-top: auto;
+  margin-bottom: 0;
+  position: relative;
+  border-radius: 0 0 16px 16px;
+  overflow: hidden;
+}
+
+#mainChart {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Неоновий ефект */
+.chart-container canvas {
+  filter: drop-shadow(0 0 6px #00eaff55);
+}

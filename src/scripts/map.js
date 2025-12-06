@@ -3,9 +3,12 @@ let infoWindow;
 let userMarker;
 let foundStores = [];
 
+// Дозволяємо Google викликати initMap()
 window.initMap = initMap;
 
-// --- Haversine ---
+// =========================
+//      Haversine
+// =========================
 function distance(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -19,7 +22,9 @@ function distance(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// --- LOAD USER CARDS ---
+// =========================
+//   LOAD USER CARDS
+// =========================
 async function loadUserCards() {
   try {
     const resp = await fetch(`${API_URL}/api/loyalty-cards`, {
@@ -34,21 +39,22 @@ async function loadUserCards() {
       store: card.store_name,
       card_name: card.card_name
     }));
-
   } catch (e) {
     console.log("Load cards error:", e);
     return [];
   }
 }
 
-// --- NEW PLACES API 2025 ---
+// =========================
+//   NEW GOOGLE PLACES API
+// =========================
 async function searchStoreLocation(name) {
   try {
-    const { Place } = google.maps.places;
+    const { Place } = await google.maps.importLibrary("places");
 
     const request = {
       textQuery: `${name} Kyiv`,
-      fields: ["displayName", "location", "formattedAddress"]
+      fields: ["displayName", "formattedAddress", "location"]
     };
 
     const { places } = await Place.searchByText(request);
@@ -56,12 +62,14 @@ async function searchStoreLocation(name) {
     return places?.length ? places[0] : null;
 
   } catch (e) {
-    console.log("Search error:", e);
+    console.error("Search error:", e);
     return null;
   }
 }
 
-// --- SHOW MARKER ---
+// =========================
+//   SHOW MARKER
+// =========================
 function showMarker(place, card) {
   const marker = new google.maps.Marker({
     position: place.location,
@@ -86,7 +94,9 @@ function showMarker(place, card) {
   });
 }
 
-// --- RENDER LIST ---
+// =========================
+//   RENDER LIST
+// =========================
 function renderList(items) {
   const list = document.getElementById("storesList");
 
@@ -104,33 +114,73 @@ function renderList(items) {
   `).join("");
 }
 
-// --- ROUTE ---
+// =========================
+//   ROUTES + FOCUS
+// =========================
 function openRoute(lat, lng) {
   window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`);
 }
 
-// --- FOCUS ---
 function focusPoint(lat, lng) {
   map.setCenter({ lat, lng });
   map.setZoom(16);
 }
 
-// --- INIT MAP ---
-async function initMap() {
-  console.log("🗺 initMap RUN");
+window.openRoute = openRoute;
+window.focusPoint = focusPoint;
 
-  map = new google.maps.Map(document.getElementById("map"), {
+// =========================
+//        INIT MAP
+// =========================
+async function initMap() {
+  console.log("🗺 initMap START");
+
+  const { Map } = await google.maps.importLibrary("maps");
+
+  map = new Map(document.getElementById("map"), {
     center: { lat: 50.45, lng: 30.523 },
     zoom: 13,
+    disableDefaultUI: false,
     styles: [
-      { elementType: "geometry", stylers: [{ color: "#0f172a" }] },
-      { elementType: "labels.text.fill", stylers: [{ color: "#e5e7eb" }] },
-      { elementType: "labels.text.stroke", stylers: [{ color: "#020617" }] }
+      { elementType: "geometry", stylers: [{ color: "#1a1a2e" }] },
+      { elementType: "labels.text.stroke", stylers: [{ color: "#0f0f1a" }] },
+      { elementType: "labels.text.fill", stylers: [{ color: "#eaeaea" }] },
+      {
+        featureType: "poi",
+        elementType: "geometry",
+        stylers: [{ color: "#16213e" }]
+      },
+      {
+        featureType: "poi",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#c9d6df" }]
+      },
+      {
+        featureType: "road",
+        elementType: "geometry",
+        stylers: [{ color: "#0f3460" }]
+      },
+      {
+        featureType: "road",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#a7c5eb" }]
+      },
+      {
+        featureType: "water",
+        elementType: "geometry",
+        stylers: [{ color: "#533483" }]
+      },
+      {
+        featureType: "water",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#dcd6f7" }]
+      }
     ]
   });
 
   infoWindow = new google.maps.InfoWindow();
 
+  // Load stores
   const cards = await loadUserCards();
   foundStores = [];
 
@@ -152,13 +202,12 @@ async function initMap() {
 
   renderList(foundStores);
 
-  // --- LOCATION BUTTON ---
+  // =========================
+  //   LOCATION BUTTON
+  // =========================
   document.getElementById("myLocationBtn").onclick = () => {
     navigator.geolocation.getCurrentPosition(pos => {
-      const userPos = {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude
-      };
+      const userPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
 
       if (!userMarker) {
         userMarker = new google.maps.Marker({
@@ -173,24 +222,25 @@ async function initMap() {
             strokeWeight: 3
           }
         });
-      } else userMarker.setPosition(userPos);
+      } else {
+        userMarker.setPosition(userPos);
+      }
 
       map.setCenter(userPos);
       map.setZoom(15);
 
+      // Сортуємо магазини за відстанню
       foundStores.forEach(store => {
         store.distance = distance(
-          userPos.lat, userPos.lng,
-          store.lat, store.lng
+          userPos.lat,
+          userPos.lng,
+          store.lat,
+          store.lng
         );
       });
 
-      foundStores.sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
-
+      foundStores.sort((a, b) => a.distance - b.distance);
       renderList(foundStores);
     });
   };
 }
-
-window.focusPoint = focusPoint;
-window.openRoute = openRoute;

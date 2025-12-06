@@ -11,29 +11,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet" />
 
   <!-- CSS -->
-  <link rel="stylesheet" href="/styles/style.css" />
-  <link rel="stylesheet" href="/styles/map.css" />
+  <link rel="stylesheet" href="./styles/style.css" />
+  <link rel="stylesheet" href="./styles/map.css" />
 
   <!-- Header auto-load -->
   <script src="./scripts/header.js"></script>
 
   <!-- Map script (no cache) -->
-  <script src="/scripts/map.js?v=999"></script>
+  <script src="/scripts/map.js?v=5"></script>
 
   <!-- Google Maps API Loader -->
-  <script type="module">
-    import { Loader } from "https://esm.run/@googlemaps/js-api-loader";
-
-    const loader = new Loader({
-      apiKey: "AIzaSyDUq0nkvWKvX7EWbNrwkRsEvhLp_7qcWeU",
-      version: "weekly",
-      libraries: ["places"]
-    });
-
-    loader.load().then(() => {
-      initMap();
-    });
-  </script>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDUq0nkvWKvX7EWbNrwkRsEvhLp_7qcWeU&libraries=places&callback=initMap"
+    async defer
+  ></script>
 
   <link rel="icon" type="image/x-icon" href="./images/web-site_icon.png" />
 </head>

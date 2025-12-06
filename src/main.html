@@ -1,46 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cashback Invest</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Poppins:wght@400;500;700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    
-    <!-- Завантаження хедера -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Poppins:wght@400;500;700&family=Roboto:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+
     <script src="./scripts/header.js"></script>
-    
-    <link rel="icon" type="image/x-icon" href="./images/web-site_icon.png"/>
-    <link rel="stylesheet" href="./styles/style.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="icon" type="image/x-icon" href="./images/web-site_icon.png" />
+    <link rel="stylesheet" href="./styles/style.css" />
 </head>
+
 <body>
-  <!-- Хедер завантажиться тут автоматично -->
 
   <main class="main-content">
     <div class="grid-container">
+
+      <!-- Banner -->
       <div class="grid-item grid-full" id="profileBanner">
-        <img src="./images/home-grid__banner.png" alt="1-st grid-element Banner" class="home-grid__banner"/>
+        <img src="./images/home-grid__banner.png" class="home-grid__banner" />
       </div>
 
-      <div class="grid-item grid-half" id="currencyChart">
-        <img src="./images/save-front-side.jpg" alt="-"/>
+      <!-- Investments Chart Widget -->
+      <div class="grid-half" id="currencyChart">
+        <div class="widget_char widget" onclick="window.location.href='/investments'">
+          <div class="widget-title">📈 Investments</div>
+
+          <div class="widget-content">
+            <div class="chart-container">
+              <canvas id="mainChart"></canvas>
+            </div>
+          </div>
+
+        </div>
       </div>
 
-      <div class="grid-item grid-half" id="activityChart">
-        <img src="./images/save-front-side.jpg" alt="-"/>
+      <!-- Loyalty cards -->
+      <div class="grid-half" id="cardsWidget">
+        <div class="widget">
+          <div class="widget-title">🧾 My Cards</div>
+          <div class="cards-preview">
+            <div class="neon-card card-left"></div>
+            <div class="neon-card card-center"></div>
+            <div class="neon-card card-right"></div>
+          </div>
+        </div>
       </div>
 
-      <div class="grid-item grid-half" id="cardsWidget">
-        <img src="./images/save-front-side.jpg" alt="-"/>
+      <!-- Map widget -->
+      <div class="grid-half" id="storesMap">
+        <div class="widget" onclick="window.location.href='/map'">
+          <div class="widget-title">🗺 Nearby Stores</div>
+          <div class="widget-content">
+            <img src="" />
+          </div>
+        </div>
       </div>
 
-      <div class="grid-item grid-half" id="storesMap">
-        <img src="./images/save-front-side.jpg" alt="-"/>
+      <!-- Activity -->
+      <div class="grid-half" id="activityChart">
+        <div class="widget">
+          <div class="widget-title">📊 Activity</div>
+          <div class="widget-content">
+            <img src="" />
+          </div>
+        </div>
       </div>
+
     </div>
   </main>
-  
+
   <footer class="footer"></footer>
+
+  <!--#region JS for chart.js-->
+  <script>
+  const ctx = document.getElementById("mainChart").getContext("2d");
+
+// Генерація плавного графіка з різкими, але мʼякими піками
+function makeSmoothData(points) {
+  const arr = [];
+  let prev = 90;
+
+  for (let i = 0; i < points; i++) {
+    const jump = (Math.random() - 0.5) * 20;
+    prev = Math.min(140, Math.max(60, prev + jump));
+    arr.push(prev);
+  }
+  return arr;
+  }
+
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: Array.from({ length: 30 }, (_, i) => i + 1),
+      datasets: [
+        {
+          label: "",
+          data: makeSmoothData(30),
+          borderColor: "#00eaff",
+          borderWidth: 3,
+          fill: true,
+          backgroundColor: "rgba(0, 220, 255, 0.07)",
+          tension: 0.35,
+
+          pointRadius: 0,
+          pointHoverRadius: 0,        // ← немає hover точки
+          pointHitRadius: 0,          // ← ховер не ловиться
+        }
+      ]
+    },
+    options: {
+      responsive: false,
+      maintainAspectRatio: false,
+
+      interaction: {
+        mode: "none",                // ← ГОЛОВНЕ! Ніяких підсвічувань
+        intersect: false
+      },
+
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false }  // ← tooltip повністю вимкнено
+      },
+
+      layout: {
+        padding: { bottom: 5, top: 0 }
+      },
+
+      scales: {
+        x: { display: false },
+        y: {
+          display: false,
+          min: 60,
+          max: 140
+        }
+      }
+    }
+  });
+  </script>
+  <!--#endregion-->
+
 </body>
 </html>
