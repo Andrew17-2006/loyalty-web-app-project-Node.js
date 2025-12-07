@@ -49,7 +49,9 @@
           <div class="widget-title">🧾 My Cards</div>
           <div class="cards-preview">
             <div class="neon-card card-left"></div>
-            <div class="neon-card card-center"></div>
+            <div class="neon-card card-center">
+              <span class="card-plus">+</span>
+            </div>
             <div class="neon-card card-right"></div>
           </div>
         </div>
@@ -112,8 +114,16 @@ function makeSmoothData(points) {
           tension: 0.35,
 
           pointRadius: 0,
-          pointHoverRadius: 0,        // ← немає hover точки
-          pointHitRadius: 0,          // ← ховер не ловиться
+          pointHoverRadius: 0,
+          pointHitRadius: 40,
+
+          segment: {
+            borderColor: ctx =>
+              ctx.active ? "#5cf2ff" : "#00eaff",
+
+            borderWidth: ctx =>
+              ctx.active ? 4 : 3
+          }
         }
       ]
     },
@@ -122,13 +132,13 @@ function makeSmoothData(points) {
       maintainAspectRatio: false,
 
       interaction: {
-        mode: "none",                // ← ГОЛОВНЕ! Ніяких підсвічувань
+        mode: "nearest",
         intersect: false
       },
 
       plugins: {
         legend: { display: false },
-        tooltip: { enabled: false }  // ← tooltip повністю вимкнено
+        tooltip: { enabled: false }
       },
 
       layout: {
@@ -144,6 +154,7 @@ function makeSmoothData(points) {
         }
       }
     }
+    
   });
   </script>
   <!--#endregion-->
