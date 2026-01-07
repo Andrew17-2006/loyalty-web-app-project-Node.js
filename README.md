@@ -22,10 +22,15 @@ The application simulates a basic loyalty program and is intended as an **educat
 
 loyalty-web-app-project-Node.js/
 │
+
 ├── public/ # Static frontend files
+
 ├── server/ # Backend logic
+
 ├── index.js # Application entry point
+
 ├── package.json # Project configuration and dependencies
+
 └── README.md # Project documentation
 
 
